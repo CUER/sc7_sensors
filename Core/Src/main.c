@@ -21,7 +21,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdint.h>
+#include <stdio.h>
 
+#include <lsm6ds.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -73,7 +76,9 @@ static void MX_USART2_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  char uart_buf[500];
+  int len;
+  float temp;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -99,7 +104,10 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_Delay(5000);
+  HAL_StatusTypeDef ret = LSM6DS_Connect(&hi2c1);
+  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
+  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -109,7 +117,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    HAL_UART_Transmit(&huart2, (uint8_t*)"Hello world, this is a UART\r\n\r", 30, HAL_MAX_DELAY);
+    ret = LSM6DS_GetTemp(&hi2c1, &temp);
+    int x = (int)(temp * 1000);
+    len = snprintf(uart_buf, 500, "Temp is %i with return code %u\r\n\r", x, ret);
+    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
     HAL_Delay(1000);
   }
   /* USER CODE END 3 */
@@ -228,7 +239,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x00300F38;
+  hi2c1.Init.Timing = 0x00707CBB;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
