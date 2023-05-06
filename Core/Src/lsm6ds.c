@@ -50,9 +50,68 @@ HAL_StatusTypeDef LSM6DS_Connect(I2C_HandleTypeDef *hi2c) {
 
     buf[0] |= 0x02;
     ret = I2C_Write_Data(hi2c, LSM6DS_CTRL9_XL, buf, 1);
+
+    return ret;
+}
+
+HAL_StatusTypeDef LSM6DS_SetAccelDataRate(I2C_HandleTypeDef *hi2c, lsm6ds_data_rate_t rate) {
+    HAL_StatusTypeDef ret;
+    uint8_t buf[1];
+
+    ret = I2C_Read_Data(hi2c, LSM6DS_CTRL1_XL, buf, 1);
     if (ret != HAL_OK) return ret;
 
-    return HAL_OK;
+    buf[0] &= ~(0b1111 << 4);
+    buf[0] |= (rate << 4);
+
+    ret = I2C_Write_Data(hi2c, LSM6DS_CTRL1_XL, buf, 1);
+
+    return ret;
+}
+
+HAL_StatusTypeDef LSM6DS_SetAccelRange(I2C_HandleTypeDef *hi2c, lsm6ds_accel_range_t range) {
+    HAL_StatusTypeDef ret;
+    uint8_t buf[1];
+
+    ret = I2C_Read_Data(hi2c, LSM6DS_CTRL1_XL, buf, 1);
+    if (ret != HAL_OK) return ret;
+
+    buf[0] &= ~(0b11 << 2);
+    buf[0] |= (range << 2);
+    
+    ret = I2C_Write_Data(hi2c, LSM6DS_CTRL1_XL, buf, 1);
+
+    return ret;
+}
+
+HAL_StatusTypeDef LSM6DS_SetGyroDataRate(I2C_HandleTypeDef *hi2c, lsm6ds_data_rate_t rate) {
+    HAL_StatusTypeDef ret;
+    uint8_t buf[1];
+
+    ret = I2C_Read_Data(hi2c, LSM6DS_CTRL2_G, buf, 1);
+    if (ret != HAL_OK) return ret;
+
+    buf[0] &= ~(0b1111 << 4);
+    buf[0] |= (rate << 4);
+
+    ret = I2C_Write_Data(hi2c, LSM6DS_CTRL2_G, buf, 1);
+
+    return ret;
+}
+
+HAL_StatusTypeDef LSM6DS_SetGyroRange(I2C_HandleTypeDef *hi2c, lsm6ds_gyro_range_t range) {
+    HAL_StatusTypeDef ret;
+    uint8_t buf[1];
+
+    ret = I2C_Read_Data(hi2c, LSM6DS_CTRL2_G, buf, 1);
+    if (ret != HAL_OK) return ret;
+
+    buf[0] &= ~(0b111 < 1);
+    buf[0] |= (range << 1);
+
+    ret = I2C_Write_Data(hi2c, LSM6DS_CTRL2_G, buf, 1);
+
+    return ret;
 }
 
 HAL_StatusTypeDef LSM6DS_GetTemp(I2C_HandleTypeDef *hi2c, float *result) {
