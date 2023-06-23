@@ -15,6 +15,7 @@
 
 #define LSM6DS_CTRL1_XL 0x10
 #define LSM6DS_CTRL2_G 0x11
+#define LSM6DS_STATUS_REG 0x1E
 #define LSM6DS_OUT_TEMP_L 0x20
 
 typedef enum data_rate {
@@ -64,5 +65,7 @@ HAL_StatusTypeDef LSM6DS_SetGyroDataRate(I2C_HandleTypeDef *hi2c, lsm6ds_data_ra
 HAL_StatusTypeDef LSM6DS_SetGyroRange(I2C_HandleTypeDef *hi2c, lsm6ds_gyro_range_t range);
 
 HAL_StatusTypeDef LSM6DS_GetTemp(I2C_HandleTypeDef *hi2c, float *result);
+
+HAL_StatusTypeDef LSM6DS_ReadAllData(I2C_HandleTypeDef *hi2c, uint8_t *result);
 
 #endif /* LSM6DS_H */

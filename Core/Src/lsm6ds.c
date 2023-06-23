@@ -1,21 +1,25 @@
 #include "lsm6ds.h"
 
 static HAL_StatusTypeDef I2C_Write_Data(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t* data, uint16_t bytes) {
-    HAL_StatusTypeDef ret;
+    return HAL_I2C_Mem_Write(hi2c, LSM6DS_ADDR, addr, 1, data, bytes, I2C_DELAY_TIMEOUT);
+    // HAL_StatusTypeDef ret;
 
-    ret = HAL_I2C_Master_Transmit(hi2c, LSM6DS_ADDR, &addr, 1, I2C_DELAY_TIMEOUT);
-    if (ret != HAL_OK) return ret;
-    ret = HAL_I2C_Master_Transmit(hi2c, LSM6DS_ADDR, data, bytes, I2C_DELAY_TIMEOUT);
-    return ret;
+    // addr |= (1 << 7);
+
+    // ret = HAL_I2C_Master_Transmit(hi2c, LSM6DS_ADDR, &addr, 1, I2C_DELAY_TIMEOUT);
+    // if (ret != HAL_OK) return ret;
+    // ret = HAL_I2C_Master_Transmit(hi2c, LSM6DS_ADDR, data, bytes, I2C_DELAY_TIMEOUT);
+    // return ret;
 }
 
 static HAL_StatusTypeDef I2C_Read_Data(I2C_HandleTypeDef *hi2c, uint8_t addr, uint8_t* data, uint16_t bytes) {
-    HAL_StatusTypeDef ret;
+    return HAL_I2C_Mem_Read(hi2c, LSM6DS_ADDR, addr, 1, data, bytes, I2C_DELAY_TIMEOUT);
+    // HAL_StatusTypeDef ret;
 
-    ret = HAL_I2C_Master_Transmit(hi2c, LSM6DS_ADDR, &addr, 1, I2C_DELAY_TIMEOUT);
-    if (ret != HAL_OK) return ret;
-    ret = HAL_I2C_Master_Receive(hi2c, LSM6DS_ADDR, data, bytes, I2C_DELAY_TIMEOUT);
-    return ret;
+    // ret = HAL_I2C_Master_Transmit(hi2c, LSM6DS_ADDR, &addr, 1, I2C_DELAY_TIMEOUT);
+    // if (ret != HAL_OK) return ret;
+    // ret = HAL_I2C_Master_Receive(hi2c, LSM6DS_ADDR, data, bytes, I2C_DELAY_TIMEOUT);
+    // return ret;
 }
 
 HAL_StatusTypeDef LSM6DS_Connect(I2C_HandleTypeDef *hi2c) {
@@ -125,4 +129,11 @@ HAL_StatusTypeDef LSM6DS_GetTemp(I2C_HandleTypeDef *hi2c, float *result) {
     *result = (rawTemp / 256.0) + 25.0;
 
     return HAL_OK;
+}
+
+HAL_StatusTypeDef LSM6DS_ReadAllData(I2C_HandleTypeDef *hi2c, uint8_t *result) {
+    HAL_StatusTypeDef ret;
+
+    ret = I2C_Read_Data(hi2c, LSM6DS_OUT_TEMP_L, result, 14);
+    return ret;
 }

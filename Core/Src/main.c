@@ -76,9 +76,10 @@ static void MX_USART2_UART_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+  HAL_StatusTypeDef ret;
   char uart_buf[500];
   int len;
-  float temp;
+  uint8_t result_buf[14];
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -105,7 +106,23 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_Delay(5000);
-  HAL_StatusTypeDef ret = LSM6DS_Connect(&hi2c1);
+  ret = LSM6DS_Connect(&hi2c1);
+  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
+  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+
+  ret = LSM6DS_SetAccelDataRate(&hi2c1, LSM6DS_RATE_12_5_HZ);
+  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
+  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+
+  ret = LSM6DS_SetAccelRange(&hi2c1, LSM6DSO32_ACCEL_RANGE_4_G);
+  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
+  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+
+  ret = LSM6DS_SetGyroDataRate(&hi2c1, LSM6DS_RATE_12_5_HZ);
+  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
+  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+
+  ret = LSM6DS_SetGyroRange(&hi2c1, LSM6DS_GYRO_RANGE_125_DPS);
   len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
   HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
   /* USER CODE END 2 */
@@ -117,11 +134,16 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    ret = LSM6DS_GetTemp(&hi2c1, &temp);
-    int x = (int)(temp * 1000);
-    len = snprintf(uart_buf, 500, "Temp is %i with return code %u\r\n\r", x, ret);
+    ret = HAL_I2C_Mem_Read(&hi2c1, LSM6DS_ADDR, 0x1E, 1, result_buf, 1, HAL_MAX_DELAY);
+    len = snprintf(uart_buf, 500, "Value for status register is %u with return code %u\r\n\r", result_buf[0], ret);
     HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-    HAL_Delay(1000);
+
+    ret = LSM6DS_ReadAllData(&hi2c1, result_buf);
+    for (int i = 0; i < 14; i++) {
+      len = snprintf(uart_buf, 500, "Value for register %i is %u with return code %u\r\n\r", i, result_buf[i], ret);
+      HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+    }
+    HAL_Delay(5000);
   }
   /* USER CODE END 3 */
 }
