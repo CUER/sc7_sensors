@@ -6,7 +6,7 @@
 #include "stm32l4xx_hal.h"
 
 #define I2C_DELAY_TIMEOUT HAL_MAX_DELAY
-#define LSM6DS_ADDR 0x6A << 1
+#define LSM6DS_ADDR (0x6A << 1)
 #define LSM6DSO32_CHIP_ID 0x6C
 
 #define LSM6DS_WHOAMI 0x0F
@@ -64,18 +64,18 @@ typedef struct {
 
 HAL_StatusTypeDef LSM6DS_Connect(I2C_HandleTypeDef *hi2c);
 
-HAL_StatusTypeDef LSM6DS_SetAccelDataRate(I2C_HandleTypeDef *hi2c, lsm6ds_data_rate_t rate);
+HAL_StatusTypeDef LSM6DS_SetAccelDataRate(lsm6ds_data_rate_t rate);
 
-HAL_StatusTypeDef LSM6DS_SetAccelRange(I2C_HandleTypeDef *hi2c, lsm6ds_accel_range_t range);
+HAL_StatusTypeDef LSM6DS_SetAccelRange(lsm6ds_accel_range_t range);
 
-HAL_StatusTypeDef LSM6DS_SetGyroDataRate(I2C_HandleTypeDef *hi2c, lsm6ds_data_rate_t rate);
+HAL_StatusTypeDef LSM6DS_SetGyroDataRate(lsm6ds_data_rate_t rate);
 
-HAL_StatusTypeDef LSM6DS_SetGyroRange(I2C_HandleTypeDef *hi2c, lsm6ds_gyro_range_t range);
+HAL_StatusTypeDef LSM6DS_SetGyroRange(lsm6ds_gyro_range_t range);
 
-HAL_StatusTypeDef LSM6DS_GetTemp(I2C_HandleTypeDef *hi2c, float *result);
+HAL_StatusTypeDef LSM6DS_GetTemp(float *result);
 
-HAL_StatusTypeDef LSM6DS_GetAccel(I2C_HandleTypeDef *hi2c, lsm6ds_data_t *result);
+HAL_StatusTypeDef LSM6DS_GetAccel(lsm6ds_data_t *result);
 
-HAL_StatusTypeDef LSM6DS_GetGyro(I2C_HandleTypeDef *hi2c, lsm6ds_data_t *result);
+HAL_StatusTypeDef LSM6DS_GetGyro(lsm6ds_data_t *result);
 
 #endif /* LSM6DS_H */
