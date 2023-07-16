@@ -80,6 +80,9 @@ int main(void)
   char uart_buf[500];
   int len;
   uint8_t result_buf[14];
+  float temp;
+  lsm6ds_data_t accel;
+  lsm6ds_data_t gyro;  
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -138,11 +141,24 @@ int main(void)
     len = snprintf(uart_buf, 500, "Value for status register is %u with return code %u\r\n\r", result_buf[0], ret);
     HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
 
-    ret = LSM6DS_ReadAllData(&hi2c1, result_buf);
-    for (int i = 0; i < 14; i++) {
-      len = snprintf(uart_buf, 500, "Value for register %i is %u with return code %u\r\n\r", i, result_buf[i], ret);
-      HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-    }
+    ret = LSM6DS_GetTemp(&hi2c1, &temp);
+    int temp_int = (int)(temp * 10000);
+    len = snprintf(uart_buf, 500, "Temp is %i with return code %u\r\n\r", temp_int, ret);
+    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+
+    ret = LSM6DS_GetAccel(&hi2c1, &accel);
+    int x_int = (int)(accel.x * 1000);
+    int y_int = (int)(accel.y * 1000);
+    int z_int = (int)(accel.z * 1000);
+    len = snprintf(uart_buf, 500, "Accel is x: %i, y: %i, z: %i with return code %u\r\n\r", x_int, y_int, z_int, ret);
+    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+
+    ret = LSM6DS_GetGyro(&hi2c1, &gyro);
+    x_int = (int)(gyro.x * 1000);
+    y_int = (int)(gyro.y * 1000);
+    z_int = (int)(gyro.z * 1000);
+    len = snprintf(uart_buf, 500, "Gyro is x: %i, y: %i, z: %i with return code %u\r\n\r", x_int, y_int, z_int, ret);
+    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
     HAL_Delay(5000);
   }
   /* USER CODE END 3 */
