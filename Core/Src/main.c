@@ -25,6 +25,7 @@
 #include <stdio.h>
 
 #include <lsm6ds.h>
+#include <bme280.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -109,6 +110,14 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_Delay(5000);
+  ret = BME280_Connect(&hi2c1);
+  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
+  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+
+  ret = HAL_I2C_Mem_Read(&hi2c1, BME280_ADDR, BME280_STATUS, 1, result_buf, 1, HAL_MAX_DELAY);
+  len = snprintf(uart_buf, 100, "Status is %u with return val %u\r\n\r", result_buf[0], ret);
+  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+
   ret = LSM6DS_Connect(&hi2c1);
   len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
   HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
