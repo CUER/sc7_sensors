@@ -25,6 +25,9 @@
 #include <stdio.h>
 
 #include <lsm6ds.h>
+
+#include <pb_encode.h>
+#include <lsm6ds.pb.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -110,24 +113,10 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_Delay(5000);
   ret = LSM6DS_Connect(&hi2c1);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
   ret = LSM6DS_SetAccelDataRate(LSM6DS_RATE_12_5_HZ);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
   ret = LSM6DS_SetAccelRange(LSM6DSO32_ACCEL_RANGE_4_G);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
   ret = LSM6DS_SetGyroDataRate(LSM6DS_RATE_12_5_HZ);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
   ret = LSM6DS_SetGyroRange(LSM6DS_GYRO_RANGE_125_DPS);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -137,22 +126,15 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    uint32_t tick = HAL_GetTick();
-    ret = HAL_I2C_Mem_Read(&hi2c1, LSM6DS_ADDR, 0x1E, 1, result_buf, 1, HAL_MAX_DELAY);
-    len = snprintf(uart_buf, 500, "Tick: %lu, Status register is %u with return code %u\r\n\r", tick, result_buf[0], ret);
-    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+    temp_data temp_data_holder = temp_data_init_zero;
+    temp_data_holder.tick = HAL_GetTick();
+    temp_data_holder.err = LSM6DS_GetTemp(&temp_data_holder.temp);
 
-    ret = LSM6DS_GetTemp(&temp);
-    len = snprintf(uart_buf, 500, "Temp is %f with return code %u\r\n\r", temp, ret);
-    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+    pb_ostream_t stream = pb_ostream_from_buffer(uart_buf, sizeof(uart_buf));
+    pb_encode(&stream, temp_data_fields, &temp_data_holder);
+    HAL_UART_Transmit(&huart2, (uint8_t*)&stream.bytes_written, 4, HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, stream.bytes_written, HAL_MAX_DELAY);
 
-    ret = LSM6DS_GetAccel(&accel);
-    len = snprintf(uart_buf, 500, "Accel is x: %f, y: %f, z: %f with return code %u\r\n\r", accel.x, accel.y, accel.z, ret);
-    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
-    ret = LSM6DS_GetGyro(&gyro);
-    len = snprintf(uart_buf, 500, "Gyro is x: %f, y: %f, z: %f with return code %u\r\n\r", gyro.x, gyro.y, gyro.z, ret);
-    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
     HAL_Delay(5000);
   }
   /* USER CODE END 3 */
