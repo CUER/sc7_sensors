@@ -198,3 +198,48 @@ HAL_StatusTypeDef LSM6DS_GetGyro(lsm6ds_data_t *result) {
 
     return HAL_OK;
 }
+
+HAL_StatusTypeDef LSM6DS_SetupFifo() {
+    HAL_StatusTypeDef ret;
+    uint8_t buf[1];
+
+    buf[0] = 0x00;
+    ret = I2C_Write_Data(LSM6DS_FIFO_CTRL1, buf, 1);
+    if (ret != HAL_OK) return ret;
+
+    ret = I2C_Write_Data(LSM6DS_FIFO_CTRL2, buf, 1);
+    if (ret != HAL_OK) return ret;
+
+    // 12.5Hz for accel and gyro
+    // Needs to be less than or equal to general data rate
+    buf[0] = 0x11;
+    ret = I2C_Write_Data(LSM6DS_FIFO_CTRL3, buf, 1);
+    if (ret != HAL_OK) return ret;
+
+    // Enable FIFO mode
+    buf[0] = 0b1;
+    ret = I2C_Write_Data(LSM6DS_FIFO_CTRL4, buf, 1);
+    if (ret != HAL_OK) return ret;
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef LSM6DS_ReadFifo(uint16_t* data_read, uint8_t data_tags[500][7]) {
+    HAL_StatusTypeDef ret;
+    uint8_t buf[7];
+
+    ret = I2C_Read_Data(LSM6DS_FIFO_STATUS1, buf, 2);
+    if (ret != HAL_OK) return ret;
+    *data_read =  ((buf[1] & 0b11) << 8) | buf[0];
+
+    ret = I2C_Read_Data(LSM6DS_FIFO_DATA_OUT_TAG, data_tags[0], 7 * (*data_read));
+    if (ret != HAL_OK) return ret;
+
+    for (uint16_t i = 0; i < *data_read; i++) {
+        // ret = I2C_Read_Data(LSM6DS_FIFO_DATA_OUT_TAG, data_tags[i], 7); // Wraparound enabled
+        data_tags[i][0] = (data_tags[i][0] & 0xF8) >> 3;
+        // if (ret != HAL_OK) return ret;
+    }
+
+    return HAL_OK;
+}

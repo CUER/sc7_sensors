@@ -9,6 +9,11 @@
 #define LSM6DS_ADDR (0x6A << 1)
 #define LSM6DSO32_CHIP_ID 0x6C
 
+#define LSM6DS_FIFO_CTRL1 0x07
+#define LSM6DS_FIFO_CTRL2 0x08
+#define LSM6DS_FIFO_CTRL3 0x09
+#define LSM6DS_FIFO_CTRL4 0x0A
+
 #define LSM6DS_WHOAMI 0x0F
 #define LSM6DS_CTRL3_C 0x12
 #define LSM6DS_CTRL9_XL 0x18
@@ -19,6 +24,11 @@
 #define LSM6DS_OUT_TEMP_L 0x20
 #define LSM6DS_OUTX_L_G 0x22
 #define LSM6DS_OUTX_L_A 0x28
+
+#define LSM6DS_FIFO_STATUS1 0x3A
+
+#define LSM6DS_FIFO_DATA_OUT_TAG 0x78
+#define LSM6DS_FIFO_DATA_OUT_X_L 0x79
 
 typedef enum {
   LSM6DS_RATE_SHUTDOWN,
@@ -77,5 +87,9 @@ HAL_StatusTypeDef LSM6DS_GetTemp(float *result);
 HAL_StatusTypeDef LSM6DS_GetAccel(lsm6ds_data_t *result);
 
 HAL_StatusTypeDef LSM6DS_GetGyro(lsm6ds_data_t *result);
+
+HAL_StatusTypeDef LSM6DS_SetupFifo();
+
+HAL_StatusTypeDef LSM6DS_ReadFifo(uint16_t* data_read, uint8_t data_tags[500][7]);
 
 #endif /* LSM6DS_H */
