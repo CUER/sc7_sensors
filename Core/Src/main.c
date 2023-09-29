@@ -25,6 +25,9 @@
 #include <stdio.h>
 
 #include <lsm6ds.h>
+
+#include <pb_encode.h>
+#include <lsm6ds.pb.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -107,28 +110,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_Delay(5000);
   ret = LSM6DS_Connect(&hi2c1);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
   ret = LSM6DS_SetAccelDataRate(LSM6DS_RATE_12_5_HZ);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
   ret = LSM6DS_SetAccelRange(LSM6DSO32_ACCEL_RANGE_4_G);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
   ret = LSM6DS_SetGyroDataRate(LSM6DS_RATE_12_5_HZ);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
   ret = LSM6DS_SetGyroRange(LSM6DS_GYRO_RANGE_125_DPS);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
   ret = LSM6DS_SetupFifo();
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -138,28 +124,20 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    uint32_t tick = HAL_GetTick();
-    ret = HAL_I2C_Mem_Read(&hi2c1, LSM6DS_ADDR, 0x1E, 1, result_buf, 1, HAL_MAX_DELAY);
-    len = snprintf(uart_buf, 500, "Tick: %lu, Status register is %u with return code %u\r\n\r", tick, result_buf[0], ret);
-    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+    temp_data temp_data_holder = temp_data_init_zero;
+    temp_data_holder.tick = HAL_GetTick();
+    temp_data_holder.err = LSM6DS_GetTemp(&temp_data_holder.temp);
 
     uint16_t data_read;
     uint8_t data_tags[500][7];
     ret = LSM6DS_ReadFifo(&data_read, data_tags);
-    len = snprintf(uart_buf, 500, "Read %u data points from fifo with return code %u\r\n\r", data_read, ret);
-    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
 
-    len = 0;
-    len += snprintf(&uart_buf[len], (500 - len), "Tags: ");
-    for (uint16_t i = 0; i < data_read; i++) {
-      len += snprintf(&uart_buf[len], (500 - len), "%x, ", data_tags[i][0]);
-      // len += snprintf(&uart_buf[len], (500 - len), "(Tag: %x Data: %x, %x, %x, %x, %x, %x) ",
-      //                 data_tags[i][0], data_tags[i][1], data_tags[i][2], data_tags[i][3],
-      //                 data_tags[i][4], data_tags[i][5], data_tags[i][6]);
-    }
-    len += snprintf(&uart_buf[len], (500 - len), "\r\n\r");
-    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-    HAL_Delay(1000);
+    pb_ostream_t stream = pb_ostream_from_buffer(uart_buf, sizeof(uart_buf));
+    pb_encode(&stream, temp_data_fields, &temp_data_holder);
+    HAL_UART_Transmit(&huart2, (uint8_t*)&stream.bytes_written, 4, HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, stream.bytes_written, HAL_MAX_DELAY);
+
+    HAL_Delay(5000);
   }
   /* USER CODE END 3 */
 }

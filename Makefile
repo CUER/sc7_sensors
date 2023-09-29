@@ -62,7 +62,11 @@ Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_tim.c \
 Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_tim_ex.c \
 Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_uart.c \
 Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_uart_ex.c \
-Core/Src/system_stm32l4xx.c
+Core/Src/system_stm32l4xx.c \
+NanoPB/Src/pb_common.c \
+NanoPB/Src/pb_encode.c \
+NanoPB/Src/pb_decode.c \
+NanoPB/Src/lsm6ds.pb.c
 
 # ASM sources
 ASM_SOURCES =  \
@@ -123,7 +127,8 @@ C_INCLUDES =  \
 -IDrivers/STM32L4xx_HAL_Driver/Inc \
 -IDrivers/STM32L4xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32L4xx/Include \
--IDrivers/CMSIS/Include
+-IDrivers/CMSIS/Include \
+-INanoPB/Inc
 
 
 # compile gcc flags

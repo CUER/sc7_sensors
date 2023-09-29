@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+message temp_data
+{
+uint32 tick = 1;
+float temp = 2;
+uint32 err = 3;
+}
+
+message msg_oneof
+{
+oneof msg
+{
+    temp_data msg_temp_data = 1;
+}
+}
