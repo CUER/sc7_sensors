@@ -4,8 +4,8 @@
 
 - Add nanopb/generator-bin to path
 ```bash
-protoc --python_out=pyi_out:. simple.proto.proto
-protoc --nanopb_out=. simple.proto.proto
+protoc --python_out=pyi_out:. simple.proto
+protoc --nanopb_out=. simple.proto
 cp nanopb/*.c nanopb/*.h .
 ```
 
