@@ -3,7 +3,7 @@
 #define GRAVITY (9.80665F)
 #define DPS_TO_RADS (0.017453293F)
 
-static I2C_HandleTypeDef *hi2c;
+static I2C_HandleTypeDef* hi2c;
 
 static lsm6ds_accel_range_t accel_range;
 static lsm6ds_gyro_range_t gyro_range;
@@ -143,6 +143,25 @@ HAL_StatusTypeDef LSM6DS_GetTemp(float *result) {
     return HAL_OK;
 }
 
+void LSM6DS_DecodeAccel(uint8_t raw_bytes[6], lsm6ds_data_t* result) {
+    int16_t accel_x = raw_bytes[1] << 8 | raw_bytes[0];
+    int16_t accel_y = raw_bytes[3] << 8 | raw_bytes[2];
+    int16_t accel_z = raw_bytes[5] << 8 | raw_bytes[4];
+
+    float accel_scale = 1; // range is in milli-g
+    if (accel_range == LSM6DSO32_ACCEL_RANGE_32_G)
+        accel_scale = 0.976;
+    if (accel_range == LSM6DSO32_ACCEL_RANGE_16_G)
+        accel_scale = 0.488;
+    if (accel_range == LSM6DSO32_ACCEL_RANGE_8_G)
+        accel_scale = 0.244;
+    if (accel_range == LSM6DSO32_ACCEL_RANGE_4_G)
+        accel_scale = 0.122;
+    (*result).x = accel_x * accel_scale * GRAVITY / 1000;
+    (*result).y = accel_y * accel_scale * GRAVITY / 1000;
+    (*result).z = accel_z * accel_scale * GRAVITY / 1000;
+}
+
 HAL_StatusTypeDef LSM6DS_GetAccel(lsm6ds_data_t *result) {
     HAL_StatusTypeDef ret;
     uint8_t buf[6];
@@ -212,7 +231,7 @@ HAL_StatusTypeDef LSM6DS_SetupFifo() {
 
     // 12.5Hz for accel and gyro
     // Needs to be less than or equal to general data rate
-    buf[0] = 0x11;
+    buf[0] = 0x01;
     ret = I2C_Write_Data(LSM6DS_FIFO_CTRL3, buf, 1);
     if (ret != HAL_OK) return ret;
 
@@ -224,21 +243,49 @@ HAL_StatusTypeDef LSM6DS_SetupFifo() {
     return HAL_OK;
 }
 
-HAL_StatusTypeDef LSM6DS_ReadFifo(uint16_t* data_read, uint8_t data_tags[500][7]) {
+HAL_StatusTypeDef LSM6DS_ReadFifoRaw(uint16_t* samples_read, uint8_t* samples) {
     HAL_StatusTypeDef ret;
-    uint8_t buf[7];
+    uint8_t buf[2];
 
     ret = I2C_Read_Data(LSM6DS_FIFO_STATUS1, buf, 2);
     if (ret != HAL_OK) return ret;
-    *data_read =  ((buf[1] & 0b11) << 8) | buf[0];
+    *samples_read =  ((buf[1] & 0b11) << 8) | buf[0];
+    uint16_t max_samples = 100;
+    *samples_read = ((*samples_read) < max_samples) ? (*samples_read) : max_samples;
 
-    ret = I2C_Read_Data(LSM6DS_FIFO_DATA_OUT_TAG, data_tags[0], 7 * (*data_read));
+    ret = I2C_Read_Data(LSM6DS_FIFO_DATA_OUT_TAG, samples, 7 * (*samples_read));
     if (ret != HAL_OK) return ret;
 
-    for (uint16_t i = 0; i < *data_read; i++) {
-        // ret = I2C_Read_Data(LSM6DS_FIFO_DATA_OUT_TAG, data_tags[i], 7); // Wraparound enabled
-        data_tags[i][0] = (data_tags[i][0] & 0xF8) >> 3;
-        // if (ret != HAL_OK) return ret;
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef LSM6DS_ReadFifo(imu_data_t* imu_data) {
+    HAL_StatusTypeDef ret;
+    uint8_t buffer[200 * 7];
+    uint16_t no_samples;
+
+    ret = LSM6DS_ReadFifoRaw(&no_samples, buffer);
+    if (ret != HAL_OK) return ret;
+
+    for (uint16_t i = 0; i < no_samples; i++) {
+        lsm6ds_data_t data;
+        uint8_t* current_sample = &buffer[7 * i];
+
+        uint8_t tag = (current_sample[0] & 0xF8) >> 3;
+
+        switch (tag) {
+            case 2: // Accel data
+                LSM6DS_DecodeAccel(&current_sample[1], &data);
+
+                imu_data->accel_data[imu_data->accel_data_count].x = data.x;
+                imu_data->accel_data[imu_data->accel_data_count].y = data.y;
+                imu_data->accel_data[imu_data->accel_data_count].z = data.z;
+                imu_data->accel_data_count++;
+                break;
+            
+            default:
+                return HAL_ERROR;
+        }
     }
 
     return HAL_OK;

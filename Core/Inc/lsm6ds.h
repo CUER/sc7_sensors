@@ -3,7 +3,9 @@
 
 #include <stdint.h>
 
-#include "stm32l4xx_hal.h"
+#include <stm32l4xx_hal.h>
+
+#include <imu.pb.h>
 
 #define I2C_DELAY_TIMEOUT HAL_MAX_DELAY
 #define LSM6DS_ADDR (0x6A << 1)
@@ -84,12 +86,16 @@ HAL_StatusTypeDef LSM6DS_SetGyroRange(lsm6ds_gyro_range_t range);
 
 HAL_StatusTypeDef LSM6DS_GetTemp(float *result);
 
+void LSM6DS_DecodeAccel(uint8_t raw_bytes[6], lsm6ds_data_t* result);
+
 HAL_StatusTypeDef LSM6DS_GetAccel(lsm6ds_data_t *result);
 
 HAL_StatusTypeDef LSM6DS_GetGyro(lsm6ds_data_t *result);
 
 HAL_StatusTypeDef LSM6DS_SetupFifo();
 
-HAL_StatusTypeDef LSM6DS_ReadFifo(uint16_t* data_read, uint8_t data_tags[500][7]);
+HAL_StatusTypeDef LSM6DS_ReadFifoRaw(uint16_t* samples_read, uint8_t* samples);
+
+HAL_StatusTypeDef LSM6DS_ReadFifo(imu_data_t* imu_data);
 
 #endif /* LSM6DS_H */

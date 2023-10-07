@@ -39,6 +39,7 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 Core/Src/main.c \
+Core/Src/proto_utils.c \
 Core/Src/lsm6ds.c \
 Core/Src/stm32l4xx_it.c \
 Core/Src/stm32l4xx_hal_msp.c \
@@ -66,7 +67,7 @@ Core/Src/system_stm32l4xx.c \
 NanoPB/Src/pb_common.c \
 NanoPB/Src/pb_encode.c \
 NanoPB/Src/pb_decode.c \
-NanoPB/Src/lsm6ds.pb.c
+NanoPB/Src/imu.pb.c
 
 # ASM sources
 ASM_SOURCES =  \
@@ -154,7 +155,7 @@ LDSCRIPT = STM32L432KCUx_FLASH.ld
 # libraries
 LIBS = -lc -lm -lnosys 
 LIBDIR = 
-LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
+LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections -Wl,--print-memory-usage
 ifeq ($(PFLOAT), 1)
 LDFLAGS += -u _printf_float
 endif

@@ -1,0 +1,30 @@
+syntax = "proto3";
+import "nanopb.proto";
+
+enum HAL_status_e {
+    HAL_OK       = 0x00;
+    HAL_ERROR    = 0x01;
+    HAL_BUSY     = 0x02;
+    HAL_TIMEOUT  = 0x03;
+}
+
+message accel_data_t
+{
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+message gyro_data_t
+{
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+message imu_data_t
+{
+    HAL_status_e status = 1;
+    repeated accel_data_t accel_data = 2 [(nanopb).max_count = 100];
+    repeated gyro_data_t gyro_data = 3   [(nanopb).max_count = 100];
+}

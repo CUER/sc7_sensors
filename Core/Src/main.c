@@ -26,8 +26,8 @@
 
 #include <lsm6ds.h>
 
-#include <pb_encode.h>
-#include <lsm6ds.pb.h>
+#include <imu.pb.h>
+#include <proto_utils.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -80,9 +80,7 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   HAL_StatusTypeDef ret;
-  char uart_buf[500];
-  int len;
-  uint8_t result_buf[14];
+  imu_data_t imu_data = imu_data_t_init_default;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -109,12 +107,18 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_Delay(5000);
-  ret = LSM6DS_Connect(&hi2c1);
-  ret = LSM6DS_SetAccelDataRate(LSM6DS_RATE_12_5_HZ);
-  ret = LSM6DS_SetAccelRange(LSM6DSO32_ACCEL_RANGE_4_G);
-  ret = LSM6DS_SetGyroDataRate(LSM6DS_RATE_12_5_HZ);
-  ret = LSM6DS_SetGyroRange(LSM6DS_GYRO_RANGE_125_DPS);
-  ret = LSM6DS_SetupFifo();
+  Proto_Setup(&huart2);
+
+  ret = HAL_OK;
+  ret |= LSM6DS_Connect(&hi2c1);
+  ret |= LSM6DS_SetAccelDataRate(LSM6DS_RATE_12_5_HZ);
+  ret |= LSM6DS_SetAccelRange(LSM6DSO32_ACCEL_RANGE_4_G);
+  ret |= LSM6DS_SetGyroDataRate(LSM6DS_RATE_12_5_HZ);
+  ret |= LSM6DS_SetGyroRange(LSM6DS_GYRO_RANGE_125_DPS);
+  ret |= LSM6DS_SetupFifo();
+
+  imu_data.status = (HAL_status_e)ret;
+  ret = Proto_SendIMUData(&imu_data);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -124,19 +128,11 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    temp_data temp_data_holder = temp_data_init_zero;
-    temp_data_holder.tick = HAL_GetTick();
-    temp_data_holder.err = LSM6DS_GetTemp(&temp_data_holder.temp);
-
-    uint16_t data_read;
-    uint8_t data_tags[500][7];
-    ret = LSM6DS_ReadFifo(&data_read, data_tags);
-
-    pb_ostream_t stream = pb_ostream_from_buffer(uart_buf, sizeof(uart_buf));
-    pb_encode(&stream, temp_data_fields, &temp_data_holder);
-    HAL_UART_Transmit(&huart2, (uint8_t*)&stream.bytes_written, 4, HAL_MAX_DELAY);
-    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, stream.bytes_written, HAL_MAX_DELAY);
-
+    imu_data.accel_data_count = 0;
+    imu_data.gyro_data_count = 0;
+    ret |= LSM6DS_ReadFifo(&imu_data);
+    imu_data.status = (HAL_status_e)ret;
+    ret = Proto_SendIMUData(&imu_data);
     HAL_Delay(5000);
   }
   /* USER CODE END 3 */
