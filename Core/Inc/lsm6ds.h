@@ -94,7 +94,7 @@ HAL_StatusTypeDef LSM6DS_GetGyro(lsm6ds_data_t *result);
 
 HAL_StatusTypeDef LSM6DS_SetupFifo();
 
-HAL_StatusTypeDef LSM6DS_ReadFifoRaw(uint16_t* samples_read, uint8_t* samples);
+HAL_StatusTypeDef LSM6DS_ReadFifoRaw(uint16_t max_samples, uint16_t* samples_read, uint8_t* samples);
 
 HAL_StatusTypeDef LSM6DS_ReadFifo(imu_data_t* imu_data);
 

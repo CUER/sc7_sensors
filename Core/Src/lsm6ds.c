@@ -243,15 +243,14 @@ HAL_StatusTypeDef LSM6DS_SetupFifo() {
     return HAL_OK;
 }
 
-HAL_StatusTypeDef LSM6DS_ReadFifoRaw(uint16_t* samples_read, uint8_t* samples) {
+HAL_StatusTypeDef LSM6DS_ReadFifoRaw(uint16_t max_samples, uint16_t* samples_read, uint8_t* samples) {
     HAL_StatusTypeDef ret;
     uint8_t buf[2];
 
     ret = I2C_Read_Data(LSM6DS_FIFO_STATUS1, buf, 2);
     if (ret != HAL_OK) return ret;
-    *samples_read =  ((buf[1] & 0b11) << 8) | buf[0];
-    uint16_t max_samples = 100;
-    *samples_read = ((*samples_read) < max_samples) ? (*samples_read) : max_samples;
+    uint16_t samples_available =  ((buf[1] & 0b11) << 8) | buf[0];
+    *samples_read = (samples_available < max_samples) ? samples_available : max_samples;
 
     ret = I2C_Read_Data(LSM6DS_FIFO_DATA_OUT_TAG, samples, 7 * (*samples_read));
     if (ret != HAL_OK) return ret;
@@ -261,10 +260,13 @@ HAL_StatusTypeDef LSM6DS_ReadFifoRaw(uint16_t* samples_read, uint8_t* samples) {
 
 HAL_StatusTypeDef LSM6DS_ReadFifo(imu_data_t* imu_data) {
     HAL_StatusTypeDef ret;
-    uint8_t buffer[200 * 7];
+    uint16_t max_accel_samples = sizeof(imu_data->accel_data) / sizeof(imu_data->accel_data[0]);
+    uint16_t max_gyro_samples = sizeof(imu_data->gyro_data) / sizeof(imu_data->gyro_data[0]);
+    uint16_t max_samples = (max_accel_samples < max_gyro_samples) ? max_accel_samples : max_gyro_samples;
+    uint8_t buffer[max_samples * 7];
     uint16_t no_samples;
 
-    ret = LSM6DS_ReadFifoRaw(&no_samples, buffer);
+    ret = LSM6DS_ReadFifoRaw(max_samples, &no_samples, buffer);
     if (ret != HAL_OK) return ret;
 
     for (uint16_t i = 0; i < no_samples; i++) {

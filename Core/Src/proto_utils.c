@@ -1,6 +1,6 @@
 #include <proto_utils.h>
 
-#define UART_BUFFER_LEN 10000
+#define UART_BUFFER_LEN imu_data_t_size
 
 static UART_HandleTypeDef* huart;
 
