@@ -25,6 +25,7 @@
 #include <stdio.h>
 
 #include <lsm6ds.h>
+#include <gps.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,10 +51,7 @@ UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint8_t gps_buffer[100];
-volatile uint64_t rx_pos;
-volatile uint64_t tx_pos;
-volatile long bytes_received;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -71,14 +69,11 @@ static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN 0 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  volatile HAL_StatusTypeDef ret;
+  HAL_StatusTypeDef ret = HAL_OK;
   if (huart->Instance == USART1) {
-    bytes_received++;
-    rx_pos++;
-    rx_pos = rx_pos % 100;
-    ret = HAL_UART_Receive_IT(&huart1, &gps_buffer[rx_pos], 1);
-    if (ret != HAL_OK) Error_Handler();
+    ret = GPS_UARTRxCpltHandler(huart);
   }
+  if (ret != HAL_OK) Error_Handler();
 }
 /* USER CODE END 0 */
 
@@ -89,7 +84,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  HAL_StatusTypeDef ret;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -115,10 +110,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-  bytes_received = 0;
-  tx_pos = 0;
-  rx_pos = 0;
-  volatile HAL_StatusTypeDef ret = HAL_UART_Receive_IT(&huart1, gps_buffer, 1);
+  ret = GPS_Connect(&huart1);
   if (ret != HAL_OK) Error_Handler();
   /* USER CODE END 2 */
 
@@ -126,11 +118,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    if (tx_pos != rx_pos) {
-      ret = HAL_UART_Transmit(&huart2, &gps_buffer[tx_pos], 1, 100);
-      tx_pos++;
-      tx_pos = tx_pos % 100;
-    }
+    ret = GPS_SendRxData(&huart2);
+    if (ret != HAL_OK) Error_Handler();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
