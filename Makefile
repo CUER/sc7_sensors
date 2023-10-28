@@ -63,7 +63,8 @@ Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_tim.c \
 Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_tim_ex.c \
 Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_uart.c \
 Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_uart_ex.c \
-Core/Src/system_stm32l4xx.c
+Core/Src/system_stm32l4xx.c \
+minmea/Src/minmea.c
 
 # ASM sources
 ASM_SOURCES =  \
@@ -112,7 +113,8 @@ AS_DEFS =
 # C defines
 C_DEFS =  \
 -DUSE_HAL_DRIVER \
--DSTM32L432xx
+-DSTM32L432xx \
+-Dtimegm=mktime  # Needed for minmea lib - see README.md
 
 
 # AS includes
@@ -124,7 +126,8 @@ C_INCLUDES =  \
 -IDrivers/STM32L4xx_HAL_Driver/Inc \
 -IDrivers/STM32L4xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32L4xx/Include \
--IDrivers/CMSIS/Include
+-IDrivers/CMSIS/Include \
+-Iminmea/Inc
 
 
 # compile gcc flags
