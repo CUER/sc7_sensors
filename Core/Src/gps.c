@@ -1,5 +1,6 @@
 #include "lsm6ds.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include <minmea.h>
@@ -34,9 +35,34 @@ HAL_StatusTypeDef GPS_Connect(UART_HandleTypeDef *huart_handle) {
 HAL_StatusTypeDef GPS_SendRxData(UART_HandleTypeDef *output_huart_handle) {
     HAL_StatusTypeDef ret;
     if (rx_sentence_num != tx_sentence_num) {
-        uint16_t len = strlen((char*)gps_buffer[tx_sentence_num]);
-        ret = HAL_UART_Transmit(output_huart_handle, gps_buffer[tx_sentence_num], len, 100);
-        if (ret != HAL_OK) return ret;
+        char* nmea_sentence = (char*)gps_buffer[tx_sentence_num];
+        enum minmea_sentence_id id = minmea_sentence_id(nmea_sentence, false);
+        switch (id) {
+            case MINMEA_SENTENCE_RMC: {
+                struct minmea_sentence_rmc frame;
+                char uart_buf[300];
+                if (minmea_parse_rmc(&frame, nmea_sentence)) {
+                    uint16_t len;
+                    len = snprintf(uart_buf, 300, "$xxRMC floating point degree coordinates and speed: (%f,%f) %f\r\n",
+                                   minmea_tocoord(&frame.latitude),
+                                   minmea_tocoord(&frame.longitude),
+                                   minmea_tofloat(&frame.speed));
+                    ret = HAL_UART_Transmit(output_huart_handle, (uint8_t*)uart_buf, len, 1000);
+                    if (ret != HAL_OK) return ret;
+                }
+                else {
+
+                }
+            } break;
+
+            case MINMEA_INVALID: {
+
+            } break;
+
+            default: {
+
+            } break;
+        }
         tx_sentence_num++;
         tx_sentence_num = tx_sentence_num % GPS_SENTENCE_BUF_COUNT;
     }
