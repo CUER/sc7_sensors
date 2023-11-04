@@ -34,16 +34,16 @@ HAL_StatusTypeDef GPS_Connect(UART_HandleTypeDef *huart_handle) {
 
 HAL_StatusTypeDef GPS_SendRxData(UART_HandleTypeDef *output_huart_handle) {
     HAL_StatusTypeDef ret;
+    char uart_buf[300];
     if (rx_sentence_num != tx_sentence_num) {
         char* nmea_sentence = (char*)gps_buffer[tx_sentence_num];
         enum minmea_sentence_id id = minmea_sentence_id(nmea_sentence, false);
         switch (id) {
             case MINMEA_SENTENCE_RMC: {
                 struct minmea_sentence_rmc frame;
-                char uart_buf[300];
                 if (minmea_parse_rmc(&frame, nmea_sentence)) {
                     uint16_t len;
-                    len = snprintf(uart_buf, 300, "$xxRMC floating point degree coordinates and speed: (%f,%f) %f\r\n",
+                    len = snprintf(uart_buf, sizeof(uart_buf), "$xxRMC floating point degree coordinates and speed: (%f,%f) %f\r\n",
                                    minmea_tocoord(&frame.latitude),
                                    minmea_tocoord(&frame.longitude),
                                    minmea_tofloat(&frame.speed));
@@ -54,6 +54,19 @@ HAL_StatusTypeDef GPS_SendRxData(UART_HandleTypeDef *output_huart_handle) {
 
                 }
             } break;
+
+            case MINMEA_SENTENCE_GGA: {
+                struct minmea_sentence_gga frame;
+                if (minmea_parse_gga(&frame, nmea_sentence)) {
+                    uint16_t len;
+                    len = snprintf(uart_buf, sizeof(uart_buf), "$xxGGA: fix quality: %d\r\n", frame.fix_quality);
+                    ret = HAL_UART_Transmit(output_huart_handle, (uint8_t*)uart_buf, len, 1000);
+                    if (ret != HAL_OK) return ret;
+                }
+                else {
+
+                }
+            }
 
             case MINMEA_INVALID: {
 
