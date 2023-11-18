@@ -67,7 +67,7 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+float Temperature, Pressure, Humidity;
 /* USER CODE END 0 */
 
 /**
@@ -85,7 +85,7 @@ int main(void)
   lsm6ds_data_t accel;
   lsm6ds_data_t gyro;  
 
-  float temp2;
+
 
   /* USER CODE END 1 */
 
@@ -114,9 +114,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   // HAL_Delay(5000);
 
-  ret = BME280_Connect(&hi2c1);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+  BME280_Config(&hi2c1, OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
 
   // ret = HAL_I2C_Mem_Read(&hi2c1, BME280_ADDRESS, BME280_REGISTER_STATUS, 1, result_buf, 1, HAL_MAX_DELAY);
   // len = snprintf(uart_buf, 100, "Status is %u with return val %u\r\n\r", result_buf[0], ret);
@@ -151,10 +149,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    uint32_t tick = HAL_GetTick();
-    ret = HAL_I2C_Mem_Read(&hi2c1, LSM6DS_ADDR, 0x1E, 1, result_buf, 1, HAL_MAX_DELAY);
-    len = snprintf(uart_buf, 500, "Tick: %lu, Status register is %u with return code %u\r\n\r", tick, result_buf[0], ret);
-    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+    // uint32_t tick = HAL_GetTick();
+    // ret = HAL_I2C_Mem_Read(&hi2c1, LSM6DS_ADDR, 0x1E, 1, result_buf, 1, HAL_MAX_DELAY);
+    // len = snprintf(uart_buf, 500, "Tick: %lu, Status register is %u with return code %u\r\n\r", tick, result_buf[0], ret);
+    // HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
 
     // ret = LSM6DS_GetTemp(&temp);
     // len = snprintf(uart_buf, 500, "Temp is %f with return code %u\r\n\r", temp, ret);
@@ -168,11 +166,10 @@ int main(void)
     // len = snprintf(uart_buf, 500, "Gyro is x: %f, y: %f, z: %f with return code %u\r\n\r", gyro.x, gyro.y, gyro.z, ret);
     // HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
 
-    ret = BME280_GetTemp(&temp2);
-    len = snprintf(uart_buf, 500, "Temp2 is %f with return code %u\r\n\r", temp2, ret);
+    BME280_Measure();
+	  HAL_Delay(500);
+    len = snprintf(uart_buf, 500, "T: %f, P: %f, H: %f \r\n\r", Temperature, Pressure, Humidity);
     HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-    
-    HAL_Delay(2000);
   }
   /* USER CODE END 3 */
 }
