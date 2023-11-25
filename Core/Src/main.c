@@ -114,7 +114,10 @@ int main(void)
   /* USER CODE BEGIN 2 */
   // HAL_Delay(5000);
 
-  BME280_Config(&hi2c1, OSRS_2, OSRS_16, OSRS_1, MODE_NORMAL, T_SB_0p5, IIR_16);
+  ret = BME280_Connect(&hi2c1);
+  
+  // len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
+  // HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
 
   // ret = HAL_I2C_Mem_Read(&hi2c1, BME280_ADDRESS, BME280_REGISTER_STATUS, 1, result_buf, 1, HAL_MAX_DELAY);
   // len = snprintf(uart_buf, 100, "Status is %u with return val %u\r\n\r", result_buf[0], ret);
@@ -167,9 +170,10 @@ int main(void)
     // HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
 
     BME280_Measure();
-	  HAL_Delay(500);
-    len = snprintf(uart_buf, 500, "T: %f, P: %f, H: %f \r\n\r", Temperature, Pressure, Humidity);
-    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+    // len = snprintf(uart_buf, 500, "T: %f, P: %f, H: %f \r\n\r", Temperature, Pressure, Humidity);
+    // HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+    HAL_Delay(500);
+
   }
   /* USER CODE END 3 */
 }

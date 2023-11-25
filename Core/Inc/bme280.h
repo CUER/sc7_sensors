@@ -1,25 +1,23 @@
-#ifndef __BME280_H__
-#define __BME280_H__
-#include "stm32l4xx_hal.h"
+#ifndef BME280_H
+#define BME280_H
+
 #include <stdint.h>
 
+#include "stm32l4xx_hal.h"
 
-int BME280_Config (I2C_HandleTypeDef* hi2c, uint8_t osrs_t, uint8_t osrs_p, uint8_t osrs_h, uint8_t mode, uint8_t t_sb, uint8_t filter);
+#define I2C_DELAY_TIMEOUT HAL_MAX_DELAY
+#define BME280_ADDR (0x77 << 1)
+#define BME280_CHIP_ID 0x60
 
+#define BME280_ID 0xD0
+#define BME280_RESET 0xE0
+#define BME280_STATUS 0xF3
 
-// Read the Trimming parameters saved in the NVM ROM of the device
+HAL_StatusTypeDef BME280_Connect(I2C_HandleTypeDef *hi2c);
+
 void TrimRead(void);
-
-/* To be used when doing the force measurement
- * the Device need to be put in forced mode every time the measurement is needed
- */
 void BME280_WakeUP(void);
-
-/* measure the temp, pressure and humidity
- * the values will be stored in the parameters passed to the function
- */
 void BME280_Measure (void);
-
 
 // Oversampling definitions
 #define OSRS_OFF    	0x00
@@ -51,7 +49,6 @@ void BME280_Measure (void);
 #define IIR_8       	0x03
 #define IIR_16      	0x04
 
-
 // REGISTERS DEFINITIONS
 #define ID_REG      	0xD0
 #define RESET_REG  		0xE0
@@ -62,4 +59,4 @@ void BME280_Measure (void);
 #define PRESS_MSB_REG   0xF7
 
 
-#endif /* INC_BME280_STM32_H_ */
+#endif /* BME280_H */
