@@ -110,10 +110,11 @@ void GPS_ProcessBuffer() {
 
 HAL_StatusTypeDef GPS_SendSerial(UART_HandleTypeDef *output_huart_handle) {
     char uart_buf[300];
-    const char* format_str = "GPS Data, last updated at %lums: "
-                             "time = %i:%i:%i, latitude = %f, longitude = %f, "
-                             "speed = %f, course = %f, altitude = %f\r\n";
-    int len = snprintf(uart_buf, sizeof(uart_buf), format_str, last_data_time_ms,
+    int len = snprintf(uart_buf, sizeof(uart_buf),
+                       "GPS Data, last updated at %lums: "
+                       "time = %i:%i:%i, latitude = %f, longitude = %f, "
+                       "speed = %f, course = %f, altitude = %f\r\n",
+                       last_data_time_ms,
                        current_data.time.tm_hour, current_data.time.tm_min, current_data.time.tm_sec,
                        current_data.latitude, current_data.longitude,
                        current_data.speed, current_data.course, current_data.altitude);
