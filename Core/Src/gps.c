@@ -1,9 +1,12 @@
-#include "lsm6ds.h"
+#include "gps.h"
 
 #include <stdio.h>
 #include <string.h>
 
 #include <minmea.h>
+
+#include "can.h"
+#include "main.h"
 
 #define GPS_SENTENCE_LEN MINMEA_MAX_SENTENCE_LENGTH
 #define GPS_SENTENCE_BUF_COUNT 10
@@ -16,6 +19,10 @@ static uint8_t gps_buffer[GPS_SENTENCE_BUF_COUNT][GPS_SENTENCE_LEN];
 static volatile uint8_t rx_char_pos;
 static volatile uint8_t rx_sentence_num;
 static volatile uint8_t tx_sentence_num;
+
+static int fix_quality;
+static uint32_t last_data_time_ms;
+static GPS_data_t current_data;
 
 HAL_StatusTypeDef GPS_Connect(UART_HandleTypeDef *huart_handle) {
     HAL_StatusTypeDef ret;
@@ -32,67 +39,107 @@ HAL_StatusTypeDef GPS_Connect(UART_HandleTypeDef *huart_handle) {
     return ret;
 }
 
-HAL_StatusTypeDef GPS_SendRxData(UART_HandleTypeDef *output_huart_handle) {
+HAL_StatusTypeDef GPS_PrintBuffer(UART_HandleTypeDef *output_huart_handle) {
     HAL_StatusTypeDef ret;
-    char uart_buf[300];
-    if (rx_sentence_num != tx_sentence_num) {
-        char* nmea_sentence = (char*)gps_buffer[tx_sentence_num];
-        enum minmea_sentence_id id = minmea_sentence_id(nmea_sentence, false);
-        switch (id) {
-            case MINMEA_SENTENCE_RMC: {
-                struct minmea_sentence_rmc frame;
-                if (minmea_parse_rmc(&frame, nmea_sentence)) {
-                    uint16_t len;
-                    len = snprintf(uart_buf, sizeof(uart_buf), "$xxRMC floating point degree coordinates and speed: (%f,%f) %f\r\n",
-                                   minmea_tocoord(&frame.latitude),
-                                   minmea_tocoord(&frame.longitude),
-                                   minmea_tofloat(&frame.speed));
-                    ret = HAL_UART_Transmit(output_huart_handle, (uint8_t*)uart_buf, len, 1000);
-                    if (ret != HAL_OK) return ret;
-                }
-                else {
+    // New sentences to process
+    while (rx_sentence_num == tx_sentence_num) {
+        uint16_t len = (uint16_t)strnlen((char*)gps_buffer[tx_sentence_num], GPS_SENTENCE_LEN);
+        ret = HAL_UART_Transmit(output_huart_handle, gps_buffer[tx_sentence_num], len, 100);
+        if (ret != HAL_OK) return ret;
 
-                }
-            } break;
-
-            case MINMEA_SENTENCE_GGA: {
-                struct minmea_sentence_gga frame;
-                if (minmea_parse_gga(&frame, nmea_sentence)) {
-                    uint16_t len;
-                    len = snprintf(uart_buf, sizeof(uart_buf), "$xxGGA: fix quality: %d\r\n", frame.fix_quality);
-                    ret = HAL_UART_Transmit(output_huart_handle, (uint8_t*)uart_buf, len, 1000);
-                    if (ret != HAL_OK) return ret;
-                }
-                else {
-
-                }
-            }
-
-            case MINMEA_INVALID: {
-
-            } break;
-
-            default: {
-
-            } break;
-        }
         tx_sentence_num++;
         tx_sentence_num = tx_sentence_num % GPS_SENTENCE_BUF_COUNT;
     }
+
     return HAL_OK;
+}
+
+static void GPS_Parse_RMC(char* nmea_sentence) {
+    struct minmea_sentence_rmc frame;
+    minmea_parse_rmc(&frame, nmea_sentence);
+
+    if (!frame.valid) return;
+
+    last_data_time_ms = HAL_GetTick();
+    minmea_getdatetime(&current_data.time, &frame.date, &frame.time);
+    current_data.latitude = minmea_tocoord(&frame.latitude);
+    current_data.longitude = minmea_tocoord(&frame.longitude);
+    current_data.speed = minmea_tofloat(&frame.speed);
+    current_data.course = minmea_tofloat(&frame.course);
+}
+
+static void GPS_Parse_GGA(char* nmea_sentence) {
+    struct minmea_sentence_gga frame;
+    minmea_parse_gga(&frame, nmea_sentence);
+
+    fix_quality = frame.fix_quality;
+    if (fix_quality == 0) return;  // Invalid fix
+
+    last_data_time_ms = HAL_GetTick();
+    current_data.latitude = minmea_tocoord(&frame.latitude);
+    current_data.longitude = minmea_tocoord(&frame.longitude);
+    current_data.altitude = minmea_tofloat(&frame.altitude);
+    if (frame.altitude_units != 'M') {
+        Error_Handler();
+    }
+}
+
+void GPS_ProcessBuffer() {
+
+    // New sentences to process
+    while (rx_sentence_num == tx_sentence_num) {
+        char* nmea_sentence = (char*)gps_buffer[tx_sentence_num];
+        enum minmea_sentence_id id = minmea_sentence_id(nmea_sentence, false);
+
+        switch (id) {
+            case MINMEA_SENTENCE_RMC:
+                GPS_Parse_RMC(nmea_sentence);
+                break;
+
+            case MINMEA_SENTENCE_GGA:
+                GPS_Parse_GGA(nmea_sentence);
+                break;
+
+            default:
+                break;
+        }
+
+        tx_sentence_num++;
+        tx_sentence_num = tx_sentence_num % GPS_SENTENCE_BUF_COUNT;
+    }
+}
+
+HAL_StatusTypeDef GPS_SendSerial(UART_HandleTypeDef *output_huart_handle) {
+    char uart_buf[300];
+    const char* format_str = "GPS Data, last updated at %lums: "
+                             "time = %i:%i:%i, latitude = %f, longitude = %f, "
+                             "speed = %f, course = %f, altitude = %f\r\n";
+    int len = snprintf(uart_buf, sizeof(uart_buf), format_str, last_data_time_ms,
+                       current_data.time.tm_hour, current_data.time.tm_min, current_data.time.tm_sec,
+                       current_data.latitude, current_data.longitude,
+                       current_data.speed, current_data.course, current_data.altitude);
+
+    return HAL_UART_Transmit(output_huart_handle, (uint8_t*)uart_buf, len, 1000);
+}
+
+HAL_StatusTypeDef GPS_SendCAN() {
+    // Check if data is recent
+    if (HAL_GetTick() - last_data_time_ms > GPS_DATA_FRESH_TIMEOUT_MS) return HAL_OK;
+
+    return CAN_SendGPSPos(&current_data.latitude, &current_data.longitude);
 }
 
 HAL_StatusTypeDef GPS_UARTRxCpltHandler(UART_HandleTypeDef *huart) {
     HAL_StatusTypeDef ret;
     if (gps_buffer[rx_sentence_num][rx_char_pos] == '\n') {
-        gps_buffer[rx_sentence_num][rx_char_pos + 1] = '\0';
+        gps_buffer[rx_sentence_num][rx_char_pos + 1] = '\0';  // TODO: can remove +1?
         rx_sentence_num++;
         rx_sentence_num = rx_sentence_num % GPS_SENTENCE_BUF_COUNT;
         rx_char_pos = 0;
     }
     else {
         rx_char_pos++;
-        if (rx_char_pos >= GPS_SENTENCE_LEN) return HAL_ERROR;
+        if (rx_char_pos >= GPS_SENTENCE_LEN) return HAL_ERROR;  // TODO: possible off by one error?
     }
     ret = HAL_UART_Receive_IT(huart, &gps_buffer[rx_sentence_num][rx_char_pos], 1);
     return ret;

@@ -24,6 +24,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <can.h>
 #include <lsm6ds.h>
 #include <gps.h>
 /* USER CODE END Includes */
@@ -75,6 +76,18 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   }
   if (ret != HAL_OK) Error_Handler();
 }
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+  CAN_RxHeaderTypeDef RxHeader;
+  uint8_t RxData[8];
+  /* Get RX message */
+  if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) != HAL_OK)
+  {
+    /* Reception Error */
+    Error_Handler();
+  }
+}
 /* USER CODE END 0 */
 
 /**
@@ -110,6 +123,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_CAN1_Init();
   /* USER CODE BEGIN 2 */
+  CAN_Start(&hcan1);
   ret = GPS_Connect(&huart1);
   if (ret != HAL_OK) Error_Handler();
   /* USER CODE END 2 */
@@ -118,7 +132,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    ret = GPS_SendRxData(&huart2);
+    GPS_ProcessBuffer(&huart2);
+    ret = GPS_SendSerial(&huart2);
+    if (ret != HAL_OK) Error_Handler();
+    ret = GPS_SendCAN();
     if (ret != HAL_OK) Error_Handler();
     /* USER CODE END WHILE */
 

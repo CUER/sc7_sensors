@@ -2,12 +2,55 @@
 #define GPS_H
 
 #include <stdint.h>
+#include <time.h>
 
 #include "stm32l4xx_hal.h"
 
+#define GPS_DATA_FRESH_TIMEOUT_MS 2000
+
+typedef struct {
+    struct tm time;
+    float latitude;
+    float longitude;
+    float speed;
+    float course;
+    float altitude;
+} GPS_data_t;
+
 HAL_StatusTypeDef GPS_Connect(UART_HandleTypeDef *huart_handle);
 
-HAL_StatusTypeDef GPS_SendRxData(UART_HandleTypeDef *output_huart_handle);
+/**
+ * @brief Forwards any received NMEA sentences to output UART
+ * @param[in] output_huart_handle HAL Handle to UART to forward sentence over
+ * @return Function success status
+ * 
+ * @note Received NMEA sentences are consumed, and cannot be processed again
+*/
+HAL_StatusTypeDef GPS_PrintBuffer(UART_HandleTypeDef *output_huart_handle);
+
+/**
+ * @brief Processes received NMEA sentences and updates current_data variable
+ * 
+ * @note Current data is only updated if GPS has a fix
+*/
+void GPS_ProcessBuffer();
+
+/**
+ * @brief Sends most recent data over UART
+ * @param[in] output_huart_handle HAL Handle to UART to send data over
+ * @return Function success status
+ * 
+ * @note Data is sent regardless of last update time
+*/
+HAL_StatusTypeDef GPS_SendSerial(UART_HandleTypeDef *output_huart_handle);
+
+/**
+ * @brief Sends CAN messages with most recent data
+ * @return Function success status
+ * 
+ * @note Data is only sent if updated within GPS_DATA_FRESH_TIMEOUT_MS
+*/
+HAL_StatusTypeDef GPS_SendCAN();
 
 HAL_StatusTypeDef GPS_UARTRxCpltHandler();
 
