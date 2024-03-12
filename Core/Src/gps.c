@@ -42,7 +42,7 @@ HAL_StatusTypeDef GPS_Connect(UART_HandleTypeDef *huart_handle) {
 HAL_StatusTypeDef GPS_PrintBuffer(UART_HandleTypeDef *output_huart_handle) {
     HAL_StatusTypeDef ret;
     // New sentences to process
-    while (rx_sentence_num == tx_sentence_num) {
+    while (rx_sentence_num != tx_sentence_num) {
         uint16_t len = (uint16_t)strnlen((char*)gps_buffer[tx_sentence_num], GPS_SENTENCE_LEN);
         ret = HAL_UART_Transmit(output_huart_handle, gps_buffer[tx_sentence_num], len, 100);
         if (ret != HAL_OK) return ret;
@@ -85,9 +85,8 @@ static void GPS_Parse_GGA(char* nmea_sentence) {
 }
 
 void GPS_ProcessBuffer() {
-
     // New sentences to process
-    while (rx_sentence_num == tx_sentence_num) {
+    while (rx_sentence_num != tx_sentence_num) {
         char* nmea_sentence = (char*)gps_buffer[tx_sentence_num];
         enum minmea_sentence_id id = minmea_sentence_id(nmea_sentence, false);
 
@@ -132,14 +131,18 @@ HAL_StatusTypeDef GPS_SendCAN() {
 HAL_StatusTypeDef GPS_UARTRxCpltHandler(UART_HandleTypeDef *huart) {
     HAL_StatusTypeDef ret;
     if (gps_buffer[rx_sentence_num][rx_char_pos] == '\n') {
-        gps_buffer[rx_sentence_num][rx_char_pos + 1] = '\0';  // TODO: can remove +1?
+        gps_buffer[rx_sentence_num][rx_char_pos + 1] = '\0';
         rx_sentence_num++;
         rx_sentence_num = rx_sentence_num % GPS_SENTENCE_BUF_COUNT;
         rx_char_pos = 0;
+
+        // Have filled all GPS_SENTENCE_BUF_COUNT buffers
+        if (rx_sentence_num == tx_sentence_num) Error_Handler();
     }
     else {
         rx_char_pos++;
-        if (rx_char_pos >= GPS_SENTENCE_LEN) return HAL_ERROR;  // TODO: possible off by one error?
+        // Need space to add null byte after next received character
+        if (rx_char_pos + 1 >= GPS_SENTENCE_LEN) Error_Handler();
     }
     ret = HAL_UART_Receive_IT(huart, &gps_buffer[rx_sentence_num][rx_char_pos], 1);
     return ret;
