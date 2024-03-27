@@ -21,7 +21,7 @@ static volatile uint8_t rx_sentence_num;
 static volatile uint8_t tx_sentence_num;
 
 static int fix_quality;
-static uint32_t last_data_time_ms;
+static uint32_t last_data_time_ms = UINT32_MAX - GPS_DATA_FRESH_TIMEOUT_MS;  // Data not fresh when initialised
 static GPS_data_t current_data;
 
 HAL_StatusTypeDef GPS_Connect(UART_HandleTypeDef *huart_handle) {
