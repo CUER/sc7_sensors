@@ -21,7 +21,6 @@ static volatile uint8_t rx_sentence_num;
 static volatile uint8_t tx_sentence_num;
 
 static int fix_quality;
-static uint32_t last_data_time_ms = UINT32_MAX - GPS_DATA_FRESH_TIMEOUT_MS;  // Data not fresh when initialised
 static GPS_data_t current_data;
 
 HAL_StatusTypeDef GPS_Connect(UART_HandleTypeDef *huart_handle) {
@@ -58,10 +57,12 @@ static void GPS_Parse_RMC(char* nmea_sentence) {
     struct minmea_sentence_rmc frame;
     minmea_parse_rmc(&frame, nmea_sentence);
 
-    if (!frame.valid) return;
-
-    last_data_time_ms = HAL_GetTick();
-    minmea_getdatetime(&current_data.time, &frame.date, &frame.time);
+    current_data.time.year = (uint8_t)frame.date.year;
+    current_data.time.month = (uint8_t)frame.date.month;
+    current_data.time.day = (uint8_t)frame.date.day;
+    current_data.time.hours = (uint8_t)frame.time.hours;
+    current_data.time.minutes = (uint8_t)frame.time.minutes;
+    current_data.time.seconds = (uint8_t)frame.time.seconds;
     current_data.latitude = minmea_tocoord(&frame.latitude);
     current_data.longitude = minmea_tocoord(&frame.longitude);
     current_data.speed = minmea_tofloat(&frame.speed);
@@ -73,9 +74,7 @@ static void GPS_Parse_GGA(char* nmea_sentence) {
     minmea_parse_gga(&frame, nmea_sentence);
 
     fix_quality = frame.fix_quality;
-    if (fix_quality == 0) return;  // Invalid fix
 
-    last_data_time_ms = HAL_GetTick();
     current_data.latitude = minmea_tocoord(&frame.latitude);
     current_data.longitude = minmea_tocoord(&frame.longitude);
     current_data.altitude = minmea_tofloat(&frame.altitude);
@@ -111,11 +110,10 @@ void GPS_ProcessBuffer() {
 HAL_StatusTypeDef GPS_SendSerial(UART_HandleTypeDef *output_huart_handle) {
     char uart_buf[300];
     int len = snprintf(uart_buf, sizeof(uart_buf),
-                       "GPS Data, last updated at %lums: "
-                       "time = %i:%i:%i, latitude = %f, longitude = %f, "
+                       "GPS Data: "
+                       "time = %u:%u:%u, latitude = %f, longitude = %f, "
                        "speed = %f, course = %f, altitude = %f\r\n",
-                       last_data_time_ms,
-                       current_data.time.tm_hour, current_data.time.tm_min, current_data.time.tm_sec,
+                       current_data.time.hours, current_data.time.minutes, current_data.time.seconds,
                        current_data.latitude, current_data.longitude,
                        current_data.speed, current_data.course, current_data.altitude);
 
@@ -123,10 +121,18 @@ HAL_StatusTypeDef GPS_SendSerial(UART_HandleTypeDef *output_huart_handle) {
 }
 
 HAL_StatusTypeDef GPS_SendCAN() {
-    // Check if data is recent
-    if (HAL_GetTick() - last_data_time_ms > GPS_DATA_FRESH_TIMEOUT_MS) return HAL_OK;
+    HAL_StatusTypeDef ret;
 
-    return CAN_SendGPSPos(&current_data.latitude, &current_data.longitude);
+    ret = CAN_SendGPSTime(&current_data.time);
+    if (ret != HAL_OK) return ret;
+
+    ret = CAN_SendGPSPos(&current_data.latitude, &current_data.longitude);
+    if (ret != HAL_OK) return ret;
+
+    ret = CAN_SendGPSAltVel(&current_data.altitude, &current_data.speed);
+    if (ret != HAL_OK) return ret;
+
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef GPS_UARTRxCpltHandler(UART_HandleTypeDef *huart) {

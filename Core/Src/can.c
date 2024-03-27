@@ -6,7 +6,7 @@
 #include "main.h"
 
 static CAN_HandleTypeDef* hcan;
-static uint32_t TxMailbox; // CAN Transmission Mailbox
+static uint32_t tx_mailbox; // CAN Transmission Mailbox
 
 void CAN_Start(CAN_HandleTypeDef *can_handle) {
     hcan = can_handle;
@@ -38,19 +38,43 @@ void CAN_Start(CAN_HandleTypeDef *can_handle) {
     }
 }
 
-HAL_StatusTypeDef CAN_SendGPSPos(float* lattitude, float* longitude) {
-    const CAN_TxHeaderTypeDef TxHeader = {
-    .StdId = CAN_ID_GPS_POS,    // ID of transmitter
-    .IDE = CAN_ID_STD,          // Using standard ID
-    .RTR = CAN_RTR_DATA,        // Sending dataframe
-    .DLC = 8,                   // Length of data being sent in bytes
+HAL_StatusTypeDef CAN_SendGPSTime(GPS_time_t* time) {
+    const CAN_TxHeaderTypeDef can_header = {
+        .StdId = CAN_ID_GPS_TIME,                           // ID of transmitter
+        .IDE = CAN_ID_STD,                                  // Using standard ID
+        .RTR = CAN_RTR_DATA,                                // Sending dataframe
+        .DLC = sizeof(NULL_TYPE(CAN_GPS_Time_t).data),      // Length of data being sent in bytes
     };
-    uint8_t TxData[8];
-    static_assert(2 * sizeof(float) == 8);  // Check GPS Pos data holds two floats
+    CAN_GPS_Time_t can_msg;
+    can_msg.data = *time;
 
+    return HAL_CAN_AddTxMessage(hcan, &can_header, can_msg.bytes, &tx_mailbox);
+}
 
-    memcpy(TxData, lattitude, sizeof(float));
-    memcpy(TxData + sizeof(float), longitude, sizeof(float));
+HAL_StatusTypeDef CAN_SendGPSPos(float* lattitude, float* longitude) {
+    const CAN_TxHeaderTypeDef can_header = {
+        .StdId = CAN_ID_GPS_COORD,                          // ID of transmitter
+        .IDE = CAN_ID_STD,                                  // Using standard ID
+        .RTR = CAN_RTR_DATA,                                // Sending dataframe
+        .DLC = sizeof(NULL_TYPE(CAN_GPS_Coord_t).data),     // Length of data being sent in bytes
+    };
+    CAN_GPS_Coord_t can_msg;
+    can_msg.data.lattitude = *lattitude;
+    can_msg.data.longitude = *longitude;
 
-    return HAL_CAN_AddTxMessage(hcan, &TxHeader, TxData, &TxMailbox);
+    return HAL_CAN_AddTxMessage(hcan, &can_header, can_msg.bytes, &tx_mailbox);
+}
+
+HAL_StatusTypeDef CAN_SendGPSAltVel(float* altitude, float* speed) {
+    const CAN_TxHeaderTypeDef can_header = {
+        .StdId = CAN_ID_GPS_ALTVEL,                         // ID of transmitter
+        .IDE = CAN_ID_STD,                                  // Using standard ID
+        .RTR = CAN_RTR_DATA,                                // Sending dataframe
+        .DLC = sizeof(NULL_TYPE(CAN_GPS_AltVel_t).data),    // Length of data being sent in bytes
+    };
+    CAN_GPS_AltVel_t can_msg;
+    can_msg.data.altitude = *altitude;
+    can_msg.data.speed = *speed;
+
+    return HAL_CAN_AddTxMessage(hcan, &can_header, can_msg.bytes, &tx_mailbox);
 }

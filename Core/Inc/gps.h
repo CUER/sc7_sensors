@@ -9,7 +9,16 @@
 #define GPS_DATA_FRESH_TIMEOUT_MS 2000
 
 typedef struct {
-    struct tm time;
+    uint8_t year;  // Only last two digits
+    uint8_t month;
+    uint8_t day;
+    uint8_t hours;
+    uint8_t minutes;
+    uint8_t seconds;
+} __attribute__ ((packed)) GPS_time_t;
+
+typedef struct {
+    GPS_time_t time;
     float latitude;
     float longitude;
     float speed;

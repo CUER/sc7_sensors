@@ -5,10 +5,14 @@
 
 #include "stm32l4xx_hal.h"
 
-#define CAN_ID_GPS_POS 0x550
+#include "can_defs.h"
 
 void CAN_Start(CAN_HandleTypeDef *can_handle);
 
+HAL_StatusTypeDef CAN_SendGPSTime(GPS_time_t* time);
+
 HAL_StatusTypeDef CAN_SendGPSPos(float* lattitude, float* longitude);
+
+HAL_StatusTypeDef CAN_SendGPSAltVel(float* altitude, float* speed);
 
 #endif /* CAN_H */
