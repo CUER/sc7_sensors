@@ -61,6 +61,12 @@ typedef enum {
   LSM6DS_GYRO_RANGE_2000_DPS = 0b110
 } lsm6ds_gyro_range_t;
 
+typedef enum {
+  LSM6DS_FIFO_TAG_GYRO = 1,
+  LSM6DS_FIFO_TAG_ACCEL,
+  LSM6DS_FIFO_TAG_TEMP
+} lsm6ds_fifo_tag_t;
+
 typedef struct {
   lsm6ds_data_rate_t accel_data_rate;
   lsm6ds_accel_range_t accel_range;
@@ -85,8 +91,6 @@ HAL_StatusTypeDef LSM6DS_SetGyroDataRate(lsm6ds_data_rate_t rate);
 HAL_StatusTypeDef LSM6DS_SetGyroRange(lsm6ds_gyro_range_t range);
 
 HAL_StatusTypeDef LSM6DS_GetTemp(float *result);
-
-void LSM6DS_DecodeAccel(uint8_t raw_bytes[6], lsm6ds_data_t* result);
 
 HAL_StatusTypeDef LSM6DS_GetAccel(lsm6ds_data_t *result);
 
