@@ -1,5 +1,7 @@
 #include "lsm6ds.h"
 
+#include "utils.h"
+
 #define GRAVITY (9.80665F)
 #define DPS_TO_RADS (0.017453293F)
 
@@ -287,9 +289,7 @@ static HAL_StatusTypeDef LSM6DS_ReadFifoRaw(uint16_t max_samples, uint16_t* samp
 
 HAL_StatusTypeDef LSM6DS_ReadFifo(imu_data_t* imu_data) {
     HAL_StatusTypeDef ret;
-    uint16_t max_accel_samples = sizeof(imu_data->accel_data) / sizeof(imu_data->accel_data[0]);
-    uint16_t max_gyro_samples = sizeof(imu_data->gyro_data) / sizeof(imu_data->gyro_data[0]);
-    uint16_t max_samples = (max_accel_samples < max_gyro_samples) ? max_accel_samples : max_gyro_samples;
+    uint16_t max_samples = MAX(ARRAY_LENGTH(imu_data->accel_data), ARRAY_LENGTH(imu_data->gyro_data));
     uint8_t buffer[max_samples * 7];
     uint16_t no_samples;
 
