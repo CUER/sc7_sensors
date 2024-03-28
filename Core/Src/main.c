@@ -24,7 +24,9 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <can.h>
 #include <lsm6ds.h>
+#include <gps.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -56,17 +58,36 @@ UART_HandleTypeDef huart2;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_CAN1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
+static void MX_CAN1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+  HAL_StatusTypeDef ret = HAL_OK;
+  if (huart->Instance == USART1) {
+    ret = GPS_UARTRxCpltHandler(huart);
+  }
+  if (ret != HAL_OK) Error_Handler();
+}
 
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+  CAN_RxHeaderTypeDef RxHeader;
+  uint8_t RxData[8];
+  /* Get RX message */
+  if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData) != HAL_OK)
+  {
+    /* Reception Error */
+    Error_Handler();
+  }
+}
 /* USER CODE END 0 */
 
 /**
@@ -77,12 +98,6 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
   HAL_StatusTypeDef ret;
-  char uart_buf[500];
-  int len;
-  uint8_t result_buf[14];
-  float temp;
-  lsm6ds_data_t accel;
-  lsm6ds_data_t gyro;  
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -103,57 +118,29 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_CAN1_Init();
   MX_I2C1_Init();
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
+  MX_CAN1_Init();
   /* USER CODE BEGIN 2 */
-  HAL_Delay(5000);
-  ret = LSM6DS_Connect(&hi2c1);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
-  ret = LSM6DS_SetAccelDataRate(LSM6DS_RATE_12_5_HZ);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
-  ret = LSM6DS_SetAccelRange(LSM6DSO32_ACCEL_RANGE_4_G);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
-  ret = LSM6DS_SetGyroDataRate(LSM6DS_RATE_12_5_HZ);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
-  ret = LSM6DS_SetGyroRange(LSM6DS_GYRO_RANGE_125_DPS);
-  len = snprintf(uart_buf, 100, "Return val is %u\r\n\r", ret);
-  HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
+  CAN_Start(&hcan1);
+  ret = GPS_Connect(&huart1);
+  if (ret != HAL_OK) Error_Handler();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    GPS_ProcessBuffer(&huart2);
+    ret = GPS_SendSerial(&huart2);
+    if (ret != HAL_OK) Error_Handler();
+    ret = GPS_SendCAN();
+    if (ret != HAL_OK) Error_Handler();
+    HAL_Delay(1000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    uint32_t tick = HAL_GetTick();
-    ret = HAL_I2C_Mem_Read(&hi2c1, LSM6DS_ADDR, 0x1E, 1, result_buf, 1, HAL_MAX_DELAY);
-    len = snprintf(uart_buf, 500, "Tick: %lu, Status register is %u with return code %u\r\n\r", tick, result_buf[0], ret);
-    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
-    ret = LSM6DS_GetTemp(&temp);
-    len = snprintf(uart_buf, 500, "Temp is %f with return code %u\r\n\r", temp, ret);
-    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
-    ret = LSM6DS_GetAccel(&accel);
-    len = snprintf(uart_buf, 500, "Accel is x: %f, y: %f, z: %f with return code %u\r\n\r", accel.x, accel.y, accel.z, ret);
-    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-
-    ret = LSM6DS_GetGyro(&gyro);
-    len = snprintf(uart_buf, 500, "Gyro is x: %f, y: %f, z: %f with return code %u\r\n\r", gyro.x, gyro.y, gyro.z, ret);
-    HAL_UART_Transmit(&huart2, (uint8_t*)uart_buf, len, HAL_MAX_DELAY);
-    HAL_Delay(5000);
   }
   /* USER CODE END 3 */
 }
@@ -234,11 +221,11 @@ static void MX_CAN1_Init(void)
 
   /* USER CODE END CAN1_Init 1 */
   hcan1.Instance = CAN1;
-  hcan1.Init.Prescaler = 16;
+  hcan1.Init.Prescaler = 4;
   hcan1.Init.Mode = CAN_MODE_NORMAL;
   hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan1.Init.TimeSeg1 = CAN_BS1_1TQ;
-  hcan1.Init.TimeSeg2 = CAN_BS2_1TQ;
+  hcan1.Init.TimeSeg1 = CAN_BS1_13TQ;
+  hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;
   hcan1.Init.TimeTriggeredMode = DISABLE;
   hcan1.Init.AutoBusOff = DISABLE;
   hcan1.Init.AutoWakeUp = DISABLE;
@@ -319,7 +306,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 115200;
+  huart1.Init.BaudRate = 9600;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
