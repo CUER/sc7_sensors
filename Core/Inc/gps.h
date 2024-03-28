@@ -6,8 +6,6 @@
 
 #include "stm32l4xx_hal.h"
 
-#define GPS_DATA_FRESH_TIMEOUT_MS 2000
-
 typedef struct {
     uint8_t year;  // Only last two digits
     uint8_t month;
@@ -49,7 +47,7 @@ void GPS_ProcessBuffer();
  * @param[in] output_huart_handle HAL Handle to UART to send data over
  * @return Function success status
  * 
- * @note Data is sent regardless of last update time
+ * @note Data is sent regardless of validity
 */
 HAL_StatusTypeDef GPS_SendSerial(UART_HandleTypeDef *output_huart_handle);
 
@@ -57,7 +55,7 @@ HAL_StatusTypeDef GPS_SendSerial(UART_HandleTypeDef *output_huart_handle);
  * @brief Sends CAN messages with most recent data
  * @return Function success status
  * 
- * @note Data is only sent if updated within GPS_DATA_FRESH_TIMEOUT_MS
+ * @note Data is sent regardless of validity
 */
 HAL_StatusTypeDef GPS_SendCAN();
 
