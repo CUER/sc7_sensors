@@ -278,6 +278,7 @@ HAL_StatusTypeDef LSM6DS_ReadFifoRaw(uint16_t max_samples, uint16_t* samples_rea
     uint16_t samples_available =  ((buf[1] & 0b11) << 8) | buf[0];
     *samples_read = (samples_available < max_samples) ? samples_available : max_samples;
 
+    if (*samples_read == 0) return HAL_OK;  // Do not try and read 0 bytes
     ret = I2C_Read_Data(LSM6DS_FIFO_DATA_OUT_TAG, samples, 7 * (*samples_read));
     if (ret != HAL_OK) return ret;
 
