@@ -5,7 +5,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <stm32l4xx_hal.h>
+#include "stm32l4xx_hal.h"
 
 /**
  * @brief Null variable for compile-time use only, for example inside sizeof()

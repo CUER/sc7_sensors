@@ -1,3 +1,7 @@
+/**
+ * @file
+ * @brief Provides function for transmitting CAN messages
+*/
 #ifndef CAN_H
 #define CAN_H
 

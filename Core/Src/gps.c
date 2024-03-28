@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <minmea.h>
+#include "minmea.h"
 
 #include "can.h"
 #include "utils.h"

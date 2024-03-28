@@ -1,10 +1,14 @@
+/**
+ * @file
+ * @brief For encoding and sending data using NanoPB protocol buffers
+*/
 #ifndef PROTO_UTILS_H
 #define PROTO_UTILS_H
 
-#include <stm32l4xx_hal.h>
+#include "stm32l4xx_hal.h"
 
-#include <pb_encode.h>
-#include <imu.pb.h>
+#include "pb_encode.h"
+#include "imu.pb.h"
 
 #define UART_DELAY_TIMEOUT HAL_MAX_DELAY
 

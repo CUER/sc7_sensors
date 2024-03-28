@@ -1,3 +1,9 @@
+/**
+ * @file
+ * @brief Driver for Adafruit Ultimate GPS module
+ * @note Works by receiving individual bytes over UART using interrupts,
+ * then having other functions called in the main thread to process received data
+*/
 #ifndef GPS_H
 #define GPS_H
 

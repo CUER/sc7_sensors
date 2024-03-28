@@ -24,12 +24,12 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include <can.h>
-#include <lsm6ds.h>
-#include <utils.h>
-#include <imu.pb.h>
-#include <proto_utils.h>
-#include <gps.h>
+#include "can.h"
+#include "lsm6ds.h"
+#include "utils.h"
+#include "imu.pb.h"
+#include "proto_utils.h"
+#include "gps.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
