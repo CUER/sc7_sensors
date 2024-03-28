@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include "main.h"
+#include "utils.h"
 
 static CAN_HandleTypeDef* hcan;
 static uint32_t tx_mailbox; // CAN Transmission Mailbox
@@ -22,20 +22,11 @@ void CAN_Start(CAN_HandleTypeDef *can_handle) {
     sFilterConfig.FilterActivation = ENABLE;
     sFilterConfig.SlaveStartFilterBank = 14;
 
-    if (HAL_CAN_ConfigFilter(hcan, &sFilterConfig) != HAL_OK)
-    {
-        Error_Handler();
-    }
-
-    if(HAL_CAN_Start(hcan) != HAL_OK) {
-        Error_Handler();
-    }
+    CHECK_HAL_RETURN(HAL_CAN_ConfigFilter(hcan, &sFilterConfig));
+    CHECK_HAL_RETURN(HAL_CAN_Start(hcan));
 
     // Enables interrupts when receiving CAN messages
-    if (HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
-    {
-        Error_Handler();
-    }
+    CHECK_HAL_RETURN(HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO0_MSG_PENDING));
 }
 
 HAL_StatusTypeDef CAN_SendGPSTime(GPS_time_t* time) {

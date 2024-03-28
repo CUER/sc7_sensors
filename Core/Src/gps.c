@@ -6,7 +6,7 @@
 #include <minmea.h>
 
 #include "can.h"
-#include "main.h"
+#include "utils.h"
 
 #define GPS_SENTENCE_LEN MINMEA_MAX_SENTENCE_LENGTH
 #define GPS_SENTENCE_BUF_COUNT 10
@@ -79,7 +79,7 @@ static void GPS_Parse_GGA(char* nmea_sentence) {
     current_data.longitude = minmea_tocoord(&frame.longitude);
     current_data.altitude = minmea_tofloat(&frame.altitude);
     if (frame.altitude_units != 'M') {
-        Error_Handler();
+        UTIL_Error("Unexpected units in received GGA sentence: %c\r\n", frame.altitude_units);
     }
 }
 
@@ -144,12 +144,17 @@ HAL_StatusTypeDef GPS_UARTRxCpltHandler(UART_HandleTypeDef *huart) {
         rx_char_pos = 0;
 
         // Have filled all GPS_SENTENCE_BUF_COUNT buffers
-        if (rx_sentence_num == tx_sentence_num) Error_Handler();
+        if (rx_sentence_num == tx_sentence_num) {
+            UTIL_Error("Overran GPS buffer, sentences are not being processed fast enough\r\n");
+        }
     }
     else {
         rx_char_pos++;
         // Need space to add null byte after next received character
-        if (rx_char_pos + 1 >= GPS_SENTENCE_LEN) Error_Handler();
+        if (rx_char_pos + 1 >= GPS_SENTENCE_LEN) {
+            gps_buffer[rx_sentence_num][rx_char_pos] = '\0';
+            UTIL_Error("GPS sentence length exceeded buffer length: %s\r\n", gps_buffer[rx_sentence_num]);
+        }
     }
     ret = HAL_UART_Receive_IT(huart, &gps_buffer[rx_sentence_num][rx_char_pos], 1);
     return ret;
