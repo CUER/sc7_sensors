@@ -170,7 +170,7 @@ static void LSM6DS_DecodeAccel(uint8_t raw_bytes[6], lsm6ds_data_t* result) {
     int16_t accel_y = raw_bytes[3] << 8 | raw_bytes[2];
     int16_t accel_z = raw_bytes[5] << 8 | raw_bytes[4];
 
-    float accel_scale;
+    float accel_scale = 1.0f;
     switch (accel_range) {
         // Using mg/LSB values from datasheet: Table 3. Mechanical characteristics
         case LSM6DSO32_ACCEL_RANGE_32_G:
@@ -209,7 +209,7 @@ static void LSM6DS_DecodeGyro(uint8_t raw_bytes[6], lsm6ds_data_t* result) {
     int16_t gyro_y = raw_bytes[3] << 8 | raw_bytes[2];
     int16_t gyro_z = raw_bytes[5] << 8 | raw_bytes[4];
 
-    float gyro_scale;
+    float gyro_scale = 1.0f;
     switch (gyro_range) {
         // Using mdps/LSB values from datasheet: Table 3. Mechanical characteristics
         case LSM6DS_GYRO_RANGE_2000_DPS:
@@ -269,7 +269,7 @@ HAL_StatusTypeDef LSM6DS_SetupFifo() {
     return HAL_OK;
 }
 
-HAL_StatusTypeDef LSM6DS_ReadFifoRaw(uint16_t max_samples, uint16_t* samples_read, uint8_t* samples) {
+static HAL_StatusTypeDef LSM6DS_ReadFifoRaw(uint16_t max_samples, uint16_t* samples_read, uint8_t* samples) {
     HAL_StatusTypeDef ret;
     uint8_t buf[2];
 
