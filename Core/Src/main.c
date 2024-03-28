@@ -25,7 +25,7 @@
 #include <stdio.h>
 
 #include <lsm6ds.h>
-
+#include <utils.h>
 #include <imu.pb.h>
 #include <proto_utils.h>
 /* USER CODE END Includes */
@@ -107,6 +107,7 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_Delay(5000);
+  UTIL_Setup(&huart2);
   Proto_Setup(&huart2);
 
   ret = HAL_OK;
@@ -133,7 +134,7 @@ int main(void)
     ret |= LSM6DS_ReadFifo(&imu_data);
     imu_data.status = (HAL_status_e)ret;
     ret = Proto_SendIMUData(&imu_data);
-    HAL_Delay(5000);
+    HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }

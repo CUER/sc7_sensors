@@ -39,6 +39,7 @@ BUILD_DIR = build
 # C sources
 C_SOURCES =  \
 Core/Src/main.c \
+Core/Src/utils.c \
 Core/Src/proto_utils.c \
 Core/Src/lsm6ds.c \
 Core/Src/stm32l4xx_it.c \
