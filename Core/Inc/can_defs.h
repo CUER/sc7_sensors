@@ -9,13 +9,7 @@
 #include <stdint.h>
 
 #include "gps.h"
-
-/**
- * @brief Null variable for compile-time use only, for example inside sizeof()
- * @param type Type of required variable
- * @return Null variable with type specified
-*/
-#define NULL_TYPE(type) (*((type*)0))
+#include "utils.h"
 
 /**
  * @brief Check CAN union members occupy same space
