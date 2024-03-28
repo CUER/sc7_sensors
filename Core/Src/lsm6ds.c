@@ -49,6 +49,7 @@ HAL_StatusTypeDef LSM6DS_Connect(I2C_HandleTypeDef *hi2c_handle) {
 
     buf[0] |= 0x01;
     ret = I2C_Write_Data(LSM6DS_CTRL3_C, buf, 1);
+    if (ret != HAL_OK) return ret;
 
     while ((buf[0] & 1) != 0) {
         ret = I2C_Read_Data(LSM6DS_CTRL3_C, buf, 1);
@@ -145,7 +146,7 @@ HAL_StatusTypeDef LSM6DS_SetGyroRange(lsm6ds_gyro_range_t range) {
     ret = I2C_Read_Data(LSM6DS_CTRL2_G, buf, 1);
     if (ret != HAL_OK) return ret;
 
-    buf[0] &= ~(0b111 < 1);
+    buf[0] &= ~(0b111 << 1);
     buf[0] |= (range << 1);
 
     ret = I2C_Write_Data(LSM6DS_CTRL2_G, buf, 1);

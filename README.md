@@ -33,3 +33,11 @@ Driver is based on [this](https://github.com/adafruit/Adafruit_MCP9808_Library) 
 [Datasheet](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bme280-ds002.pdf)
 
 Driver is based on [this](https://github.com/adafruit/Adafruit_BME280_Library) Adafruit library.
+
+## GPS module - Ultimate GPS MTK3339
+
+[Datasheet](https://cdn-shop.adafruit.com/datasheets/GlobalTop-FGPMMOPA6H-Datasheet-V0A.pdf)
+
+[Command List](https://cdn-shop.adafruit.com/datasheets/PMTK_A11.pdf)
+
+Driver is based on [this](https://github.com/adafruit/Adafruit_GPS) Adafruit library.
