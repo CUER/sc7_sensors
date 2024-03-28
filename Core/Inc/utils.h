@@ -6,6 +6,7 @@
 #define UTILS_H
 
 #include <stm32l4xx_hal.h>
+
 /**
  * @brief Null variable for compile-time use only, for example inside sizeof()
  * @param type Type of required variable
@@ -25,5 +26,13 @@ void UTIL_Setup(UART_HandleTypeDef* uart_handle);
  * @note Disables interrupts and loops while printing error message and flashing LED
 */
 void UTIL_Error(const char* err_msg_format, ...);
+
+/**
+ * @brief If not HAL_OK, raises error with file and line number
+ * @param return_val HAL_StatusTypeDef to check
+*/
+#define CHECK_HAL_RETURN(return_val) \
+    if (return_val != HAL_OK) \
+    UTIL_Error("%s:%i: HAL failed with error code %i\r\n", __FILE__, __LINE__, return_val)
 
 #endif /* UTILS_H */
