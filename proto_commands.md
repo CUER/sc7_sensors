@@ -3,6 +3,7 @@
 ## Pre-built install
 
 - Add nanopb/generator-bin to path
+
 ```bash
 protoc --python_out=pyi_out:. simple.proto
 protoc --nanopb_out=. simple.proto
