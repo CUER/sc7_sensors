@@ -32,7 +32,12 @@ void UTIL_Error(const char* err_msg_format, ...);
  * @param return_val HAL_StatusTypeDef to check
 */
 #define CHECK_HAL_RETURN(return_val) \
-    if (return_val != HAL_OK) \
-    UTIL_Error("%s:%i: HAL failed with error code %i\r\n", __FILE__, __LINE__, return_val)
+    do { \
+        HAL_StatusTypeDef cached_ret_val = (return_val); \
+        if (cached_ret_val != HAL_OK) { \
+            UTIL_Error("%s:%i: HAL failed with error code %i\r\n" \
+            , __FILE__, __LINE__, cached_ret_val); \
+        } \
+    } while (0)
 
 #endif /* UTILS_H */
