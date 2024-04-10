@@ -67,10 +67,10 @@ Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_tim_ex.c \
 Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_uart.c \
 Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_uart_ex.c \
 Core/Src/system_stm32l4xx.c \
-NanoPB/Src/pb_common.c \
-NanoPB/Src/pb_encode.c \
-NanoPB/Src/pb_decode.c \
-NanoPB/Src/imu.pb.c \
+NanoPB/imu.pb.c \
+NanoPB/pb_common.c \
+NanoPB/pb_encode.c \
+NanoPB/pb_decode.c \
 minmea/Src/minmea.c
 
 # ASM sources
@@ -134,7 +134,7 @@ C_INCLUDES =  \
 -IDrivers/STM32L4xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32L4xx/Include \
 -IDrivers/CMSIS/Include \
--INanoPB/Inc \
+-INanoPB \
 -Iminmea/Inc
 
 
@@ -192,7 +192,7 @@ $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
 
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(HEX) $< $@
-	
+
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(BIN) $< $@	
 	

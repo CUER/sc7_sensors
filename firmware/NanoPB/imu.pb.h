@@ -18,6 +18,10 @@ typedef enum _HAL_status_e {
 } HAL_status_e;
 
 /* Struct definitions */
+typedef struct _error_t {
+    char err_msg[200];
+} error_t;
+
 typedef struct _accel_data_t {
     float x;
     float y;
@@ -38,6 +42,14 @@ typedef struct _imu_data_t {
     gyro_data_t gyro_data[100];
 } imu_data_t;
 
+typedef struct _telemetry_packet_t {
+    pb_size_t which_packet;
+    union {
+        error_t error;
+        imu_data_t imu_data;
+    } packet;
+} telemetry_packet_t;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,18 +62,25 @@ extern "C" {
 
 
 
+
 #define imu_data_t_status_ENUMTYPE HAL_status_e
 
 
+
 /* Initializer values for message structs */
+#define error_t_init_default                     {""}
 #define accel_data_t_init_default                {0, 0, 0}
 #define gyro_data_t_init_default                 {0, 0, 0}
 #define imu_data_t_init_default                  {_HAL_status_e_MIN, 0, {accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default, accel_data_t_init_default}, 0, {gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default, gyro_data_t_init_default}}
+#define telemetry_packet_t_init_default          {0, {error_t_init_default}}
+#define error_t_init_zero                        {""}
 #define accel_data_t_init_zero                   {0, 0, 0}
 #define gyro_data_t_init_zero                    {0, 0, 0}
 #define imu_data_t_init_zero                     {_HAL_status_e_MIN, 0, {accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero, accel_data_t_init_zero}, 0, {gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero, gyro_data_t_init_zero}}
+#define telemetry_packet_t_init_zero             {0, {error_t_init_zero}}
 
 /* Field tags (for use in manual encoding/decoding) */
+#define error_t_err_msg_tag                      1
 #define accel_data_t_x_tag                       1
 #define accel_data_t_y_tag                       2
 #define accel_data_t_z_tag                       3
@@ -71,8 +90,15 @@ extern "C" {
 #define imu_data_t_status_tag                    1
 #define imu_data_t_accel_data_tag                2
 #define imu_data_t_gyro_data_tag                 3
+#define telemetry_packet_t_error_tag             1
+#define telemetry_packet_t_imu_data_tag          2
 
 /* Struct field encoding specification for nanopb */
+#define error_t_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, STRING,   err_msg,           1)
+#define error_t_CALLBACK NULL
+#define error_t_DEFAULT NULL
+
 #define accel_data_t_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, FLOAT,    x,                 1) \
 X(a, STATIC,   SINGULAR, FLOAT,    y,                 2) \
@@ -96,20 +122,34 @@ X(a, STATIC,   REPEATED, MESSAGE,  gyro_data,         3)
 #define imu_data_t_accel_data_MSGTYPE accel_data_t
 #define imu_data_t_gyro_data_MSGTYPE gyro_data_t
 
+#define telemetry_packet_t_FIELDLIST(X, a) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (packet,error,packet.error),   1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (packet,imu_data,packet.imu_data),   2)
+#define telemetry_packet_t_CALLBACK NULL
+#define telemetry_packet_t_DEFAULT NULL
+#define telemetry_packet_t_packet_error_MSGTYPE error_t
+#define telemetry_packet_t_packet_imu_data_MSGTYPE imu_data_t
+
+extern const pb_msgdesc_t error_t_msg;
 extern const pb_msgdesc_t accel_data_t_msg;
 extern const pb_msgdesc_t gyro_data_t_msg;
 extern const pb_msgdesc_t imu_data_t_msg;
+extern const pb_msgdesc_t telemetry_packet_t_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
+#define error_t_fields &error_t_msg
 #define accel_data_t_fields &accel_data_t_msg
 #define gyro_data_t_fields &gyro_data_t_msg
 #define imu_data_t_fields &imu_data_t_msg
+#define telemetry_packet_t_fields &telemetry_packet_t_msg
 
 /* Maximum encoded size of messages (where known) */
-#define IMU_PB_H_MAX_SIZE                        imu_data_t_size
+#define IMU_PB_H_MAX_SIZE                        telemetry_packet_t_size
 #define accel_data_t_size                        15
+#define error_t_size                             202
 #define gyro_data_t_size                         15
 #define imu_data_t_size                          3402
+#define telemetry_packet_t_size                  3405
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -8,6 +8,11 @@ enum HAL_status_e {
     HAL_TIMEOUT  = 0x03;
 }
 
+message error_t
+{
+    string err_msg = 1 [(nanopb).max_size = 200];
+}
+
 message accel_data_t
 {
     float x = 1;
@@ -27,4 +32,13 @@ message imu_data_t
     HAL_status_e status = 1;
     repeated accel_data_t accel_data = 2 [(nanopb).max_count = 100];
     repeated gyro_data_t gyro_data = 3   [(nanopb).max_count = 100];
+}
+
+message telemetry_packet_t
+{
+    oneof packet
+    {
+        error_t error = 1;
+        imu_data_t imu_data = 2;
+    }
 }
