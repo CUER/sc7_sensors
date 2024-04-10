@@ -27,8 +27,8 @@
 
 #define CAN_ID_GPS_TIME (CAN_ID_GPS_BASE)
 typedef union {
-    GPS_time_t data;
-    uint8_t bytes[6];
+    time_t data;
+    uint8_t bytes[8];
 } __attribute__ ((packed)) CAN_GPS_Time_t;
 CHECK_UNION_SIZE(CAN_GPS_Time_t)
 

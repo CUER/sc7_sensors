@@ -13,7 +13,7 @@
 
 void CAN_Start(CAN_HandleTypeDef *can_handle);
 
-HAL_StatusTypeDef CAN_SendGPSTime(GPS_time_t* time);
+HAL_StatusTypeDef CAN_SendGPSTime(time_t* time);
 
 HAL_StatusTypeDef CAN_SendGPSPos(float* lattitude, float* longitude);
 

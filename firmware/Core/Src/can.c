@@ -29,7 +29,7 @@ void CAN_Start(CAN_HandleTypeDef *can_handle) {
     CHECK_HAL_RETURN(HAL_CAN_ActivateNotification(hcan, CAN_IT_RX_FIFO0_MSG_PENDING));
 }
 
-HAL_StatusTypeDef CAN_SendGPSTime(GPS_time_t* time) {
+HAL_StatusTypeDef CAN_SendGPSTime(time_t* time) {
     const CAN_TxHeaderTypeDef can_header = {
         .StdId = CAN_ID_GPS_TIME,                           // ID of transmitter
         .IDE = CAN_ID_STD,                                  // Using standard ID

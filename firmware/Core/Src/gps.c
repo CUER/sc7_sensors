@@ -57,12 +57,9 @@ static void GPS_Parse_RMC(char* nmea_sentence) {
     struct minmea_sentence_rmc frame;
     minmea_parse_rmc(&frame, nmea_sentence);
 
-    current_data.time.year = (uint8_t)frame.date.year;
-    current_data.time.month = (uint8_t)frame.date.month;
-    current_data.time.day = (uint8_t)frame.date.day;
-    current_data.time.hours = (uint8_t)frame.time.hours;
-    current_data.time.minutes = (uint8_t)frame.time.minutes;
-    current_data.time.seconds = (uint8_t)frame.time.seconds;
+    struct timespec ts;
+    minmea_gettime(&ts, &frame.date, &frame.time);
+    current_data.time = ts.tv_sec;
     current_data.latitude = minmea_tocoord(&frame.latitude);
     current_data.longitude = minmea_tocoord(&frame.longitude);
     current_data.speed = minmea_tofloat(&frame.speed);
@@ -109,11 +106,13 @@ void GPS_ProcessBuffer() {
 
 HAL_StatusTypeDef GPS_SendSerial(UART_HandleTypeDef *output_huart_handle) {
     char uart_buf[300];
+
+    struct tm timestamp = *localtime(&current_data.time);
     int len = snprintf(uart_buf, sizeof(uart_buf),
                        "GPS Data: "
                        "time = %u:%u:%u, latitude = %f, longitude = %f, "
                        "speed = %f, course = %f, altitude = %f\r\n",
-                       current_data.time.hours, current_data.time.minutes, current_data.time.seconds,
+                       timestamp.tm_hour, timestamp.tm_min, timestamp.tm_sec,
                        current_data.latitude, current_data.longitude,
                        current_data.speed, current_data.course, current_data.altitude);
 
