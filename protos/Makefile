@@ -13,7 +13,7 @@ else
 endif
 
 PROTO_SRC_DIR = .
-PROTO_SRCS = imu.proto
+PROTO_SRCS = telemetry.proto
 
 NANOPB_SRC_DIR = ../firmware/NanoPB
 PYTHON_SOURCE_DIR = ../software

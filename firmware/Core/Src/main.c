@@ -27,7 +27,7 @@
 #include "can.h"
 #include "lsm6ds.h"
 #include "utils.h"
-#include "imu.pb.h"
+#include "telemetry.pb.h"
 #include "proto_utils.h"
 #include "gps.h"
 /* USER CODE END Includes */

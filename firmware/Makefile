@@ -67,7 +67,7 @@ Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_tim_ex.c \
 Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_uart.c \
 Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_uart_ex.c \
 Core/Src/system_stm32l4xx.c \
-NanoPB/imu.pb.c \
+NanoPB/telemetry.pb.c \
 NanoPB/pb_common.c \
 NanoPB/pb_encode.c \
 NanoPB/pb_decode.c \

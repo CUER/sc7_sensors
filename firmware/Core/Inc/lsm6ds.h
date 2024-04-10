@@ -9,7 +9,7 @@
 
 #include "stm32l4xx_hal.h"
 
-#include "imu.pb.h"
+#include "telemetry.pb.h"
 
 #define I2C_DELAY_TIMEOUT HAL_MAX_DELAY
 #define LSM6DS_ADDR (0x6A << 1)
