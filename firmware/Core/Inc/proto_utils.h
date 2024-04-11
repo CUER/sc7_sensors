@@ -7,7 +7,6 @@
 
 #include "stm32l4xx_hal.h"
 
-#include "pb_encode.h"
 #include "telemetry.pb.h"
 
 #define UART_DELAY_TIMEOUT HAL_MAX_DELAY
